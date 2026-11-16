@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Subrecipient Equipment Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Layout: navy header band with red rule and gold tab marker; summary first, register table, map, slide-in record drawer */
+:root{
+  --navy:#14284b; --navy-deep:#0e1d38; --red:#b3202b; --gold:#c9a227; --gold-ink:#7a5c0c; --on-navy:#ffffff; --on-navy-muted:#c3cbe0;
+  --bg:#f2f4f8; --surface:#ffffff; --sunk:#f6f7fa; --ink:#141c2b; --muted:#5b6475; --line:#d9dde6; --line-strong:#b9c0ce;
+  --accent:#1f3a68; --accent-soft:#e4eaf5; --tag:#f6efd6; --tag-ink:#4d3b08; --land:#e7ebf2;
+  --ok:#2d7650; --ok-soft:#e2f1e8; --warn:#985b0a; --warn-soft:#fbefd9; --crit:#b3202b; --crit-soft:#f9e2e3;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --shadow:0 10px 40px rgba(14,29,56,.22); --btn:#14284b;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --navy:#0e1d38; --navy-deep:#0a1528; --red:#d8414b; --gold:#e0b84a; --gold-ink:#e0b84a; --on-navy:#ffffff; --on-navy-muted:#aab4cc;
+  --bg:#0f1522; --surface:#172036; --sunk:#131b2d; --ink:#e6e9f0; --muted:#9aa3b5; --line:#2a3550; --line-strong:#3d4a68;
+  --accent:#a9c1ec; --accent-soft:#22325a; --tag:#3a3016; --tag-ink:#f0d68a; --land:#1d2842;
+  --ok:#73c497; --ok-soft:#1b3326; --warn:#e3ad5a; --warn-soft:#3a2c14; --crit:#f08088; --crit-soft:#3d1c20;
+  --shadow:0 10px 40px rgba(0,0,0,.55); --btn:#2f4f8a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --navy:#0e1d38; --navy-deep:#0a1528; --red:#d8414b; --gold:#e0b84a; --gold-ink:#e0b84a; --on-navy:#ffffff; --on-navy-muted:#aab4cc;
+  --bg:#0f1522; --surface:#172036; --sunk:#131b2d; --ink:#e6e9f0; --muted:#9aa3b5; --line:#2a3550; --line-strong:#3d4a68;
+  --accent:#a9c1ec; --accent-soft:#22325a; --tag:#3a3016; --tag-ink:#f0d68a; --land:#1d2842;
+  --ok:#73c497; --ok-soft:#1b3326; --warn:#e3ad5a; --warn-soft:#3a2c14; --crit:#f08088; --crit-soft:#3d1c20;
+  --shadow:0 10px 40px rgba(0,0,0,.55); --btn:#2f4f8a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--navy);color:var(--on-navy);border-top:4px solid var(--red)}
+header.top .wrap{padding-block:18px 0;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.8rem;letter-spacing:.01em;margin:0;text-wrap:balance}
+.proto{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--navy-deep);background:var(--gold);padding:2px 8px;border-radius:3px;font-weight:600}
+.sub{color:var(--on-navy-muted);margin:0;max-width:72ch}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;align-items:flex-end}
+nav.tabs button{font:600 .95rem var(--f-display);letter-spacing:.04em;text-transform:uppercase;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.24);border-bottom:0;border-radius:6px 6px 0 0;color:var(--on-navy-muted);padding:9px 18px;cursor:pointer;white-space:nowrap}
+nav.tabs button:hover{color:var(--on-navy);background:rgba(255,255,255,.16)}
+nav.tabs button[aria-selected="true"]{color:var(--ink);background:var(--bg);border-color:var(--bg);box-shadow:inset 0 3px 0 var(--gold)}
+nav.tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,tr:focus-visible,g.site:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{padding-block:22px 60px}
+section.view{display:flex;flex-direction:column;gap:20px}
+h2{font-family:var(--f-display);font-weight:600;font-size:1.3rem;margin:0;letter-spacing:.01em;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:1rem;text-transform:uppercase;letter-spacing:.06em;margin:0;color:var(--muted)}
+.note{color:var(--muted);font-size:.85rem;margin:0;max-width:78ch}
+
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;border-top:3px solid var(--navy)}
+.stat.alert{border-top-color:var(--red)}
+.stat .k{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.stat .v{font-family:var(--f-display);font-size:1.75rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat .d{font-size:.8rem;color:var(--muted)}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
+@media (max-width:860px){.cols{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.flaglist,.sched,.sitelist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.flaglist li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.flaglist li:first-child,.sched li:first-child,.sitelist li:first-child{border-top:0}
+.count{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:500}
+.linkbtn{font:inherit;font-size:.82rem;color:var(--accent);background:none;border:0;cursor:pointer;padding:2px 4px;text-decoration:underline;text-underline-offset:2px}
+.sched li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:.9rem}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;letter-spacing:.02em}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-ok{color:var(--ok);background:var(--ok-soft)} .p-warn{color:var(--warn);background:var(--warn-soft)}
+.p-crit{color:var(--crit);background:var(--crit-soft)} .p-mute{color:var(--muted);background:var(--sunk);border:1px solid var(--line)}
+.p-info{color:var(--accent);background:var(--accent-soft)}
+
+.assettag{display:inline-block;font-family:var(--f-mono);font-size:.8rem;font-weight:500;background:var(--tag);color:var(--tag-ink);padding:1px 7px;border-radius:3px;border:1px solid var(--line);letter-spacing:.04em}
+.notag{font-family:var(--f-mono);font-size:.78rem;color:var(--crit)}
+
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label,.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:4px;padding:7px 9px;min-width:0;width:100%}
+input[type=checkbox]{width:16px;height:16px;padding:0}
+.filters .field{width:auto}
+.filters input[type=search]{width:240px;max-width:100%}
+
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;text-align:left;padding:10px 12px;border-bottom:2px solid var(--navy);background:var(--sunk);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--sunk)}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:.85rem;white-space:nowrap}
+td.mono,.mono{font-family:var(--f-mono);font-size:.8rem}
+.desc{font-weight:500}
+.dim{color:var(--muted);font-size:.8rem}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+
+/* grant rules */
+.rulehead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end}
+.programs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.programs{grid-template-columns:1fr}}
+.prog{border-top:3px solid var(--gold)}
+.prog ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:.88rem}
+.prog .src{font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:820px){.rules{grid-template-columns:1fr}}
+.rule .grid,.addform{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rule .grid .wide,.addform .wide{grid-column:1/-1}
+.rule .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.rule .top .prog-chip{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink)}
+.eff{font-size:.85rem;background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:8px 10px}
+.lifegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.cfr{font-family:var(--f-mono);font-size:.68rem;color:var(--muted);letter-spacing:.03em;text-transform:none}
+.codebox{font-family:var(--f-mono);font-size:.78rem;min-height:140px}
+
+/* map */
+.mapgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.mapbox{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.maptools{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden}
+.seg button{font:600 .8rem var(--f-body);background:var(--surface);color:var(--ink);border:0;padding:6px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--btn);color:var(--on-navy)}
+svg.map{width:100%;height:auto;display:block;background:var(--sunk);border-radius:4px}
+svg.map .state{fill:var(--land);stroke:var(--line-strong);stroke-width:1.5}
+svg.map g.site{cursor:pointer}
+svg.map g.site circle.dot{stroke:var(--surface);stroke-width:2}
+svg.map g.site.sel circle.ring{stroke:var(--gold);stroke-width:3;fill:none}
+svg.map text{font-family:var(--f-body);font-size:13px;fill:var(--ink);paint-order:stroke;stroke:var(--sunk);stroke-width:4px;stroke-linejoin:round}
+svg.map text.n{font-family:var(--f-mono);font-size:11px;font-weight:500;fill:var(--on-navy);stroke:none}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.sitelist li{padding:9px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;cursor:pointer}
+.sitelist li:hover{background:var(--sunk)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,20,40,.4);z-index:20}
+aside.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--surface);z-index:21;box-shadow:var(--shadow);display:flex;flex-direction:column;border-left:4px solid var(--navy);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.dhead{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.dhead h2{font-size:1.3rem}
+.dbody{overflow-y:auto;padding:4px 20px 30px;display:flex;flex-direction:column;gap:4px}
+.closebtn{font:600 1.2rem var(--f-body);background:none;border:1px solid var(--line-strong);border-radius:4px;color:var(--ink);width:34px;height:34px;cursor:pointer;flex:none}
+.block{padding:14px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.block:last-child{border-bottom:0}
+dl.kv{display:grid;grid-template-columns:minmax(120px,40%) 1fr;gap:6px 14px;margin:0}
+dl.kv dt{color:var(--muted);font-size:.82rem}
+dl.kv dd{margin:0;font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
+.bar{height:8px;border-radius:4px;background:var(--sunk);border:1px solid var(--line);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--navy)}
+.dform{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dform .wide{grid-column:1/-1}
+.check{display:flex;gap:8px;align-items:center;font-size:.9rem}
+.check input{width:16px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:600 .85rem var(--f-body);border-radius:4px;padding:8px 14px;cursor:pointer;border:1px solid var(--btn);background:var(--btn);color:var(--on-navy)}
+.btn.ghost{background:none;color:var(--accent);border-color:var(--line-strong)}
+.btn.danger{background:none;color:var(--crit);border-color:var(--line-strong)}
+.owed{font-size:.88rem;background:var(--sunk);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:4px;padding:8px 10px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--on-navy);padding:9px 16px;border-radius:4px;font-size:.88rem;z-index:30;border-bottom:3px solid var(--gold)}
+.revhead{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:end}
+.revhead .field{width:auto;min-width:150px;flex:1 1 150px}
+.tablewrap.flat{border-radius:4px}
+table.steps{min-width:640px} table.steps td:first-child{width:55%}
+table.steps input,table.steps select{min-width:80px}
+table.tests{min-width:980px} table.tests td{vertical-align:middle} table.tests td:first-child{min-width:240px}
+table.tests tbody tr{cursor:default}
+select.tsel{min-width:110px}
+select.tsel.good{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
+select.tsel.bad{border-color:var(--crit);color:var(--crit);background:var(--crit-soft)}
+textarea[readonly]{background:var(--sunk);font-family:var(--f-mono);font-size:.8rem}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.flagbox{display:flex;flex-direction:column;gap:6px}
+.flagbox div{font-size:.88rem;display:flex;gap:8px;align-items:baseline}
+@media (prefers-reduced-motion:no-preference){aside.drawer{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(24px);opacity:.6}}}
+/* ---- v2 additions ---- */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:end}
+.rowbtns{display:flex;gap:6px;flex-wrap:nowrap}
+.btn.sm{padding:5px 10px;font-size:.78rem}
+.btn.warnbtn{background:none;color:var(--crit);border-color:var(--crit)}
+.btn.dangerfill{background:var(--crit);border-color:var(--crit);color:#fff}
+.fundlist{display:flex;flex-direction:column;gap:2px;font-size:.85rem}
+.fundlist .dim{font-size:.75rem}
+
+/* action bar inside the item pop-out */
+.actionbar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.actionbar .lbl{width:100%}
+
+/* funding editor */
+.fund-ed{display:flex;flex-direction:column;gap:8px}
+.fund-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto;gap:8px;align-items:center}
+.fund-tot{font-size:.85rem;padding:6px 10px;border-radius:4px;background:var(--sunk);border:1px solid var(--line)}
+.fund-tot.bad{border-color:var(--crit);color:var(--crit);background:var(--crit-soft)}
+.iconbtn{font:600 1rem var(--f-body);background:none;border:1px solid var(--line-strong);border-radius:4px;color:var(--muted);width:32px;height:34px;cursor:pointer}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,20,40,.45)}
+.modal .box{background:var(--surface);border-radius:8px;border-top:4px solid var(--red);box-shadow:var(--shadow);width:min(560px,100%);max-height:calc(100% - 32px);overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.alertbox{border:1px solid var(--crit);background:var(--crit-soft);color:var(--ink);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.alertbox strong{color:var(--crit)}
+
+/* upload */
+.upload{border:2px dashed var(--line-strong);border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:12px;background:var(--surface)}
+.upload.drag{border-color:var(--gold);background:var(--tag)}
+.mapgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+table.prev{min-width:1000px}
+table.prev tbody tr{cursor:default}
+table.prev tr.skip td{opacity:.55}
+.iss{display:flex;flex-direction:column;gap:3px}
+.iss span{font-size:.75rem}
+.iss .e{color:var(--crit)} .iss .w{color:var(--warn)} .iss .i{color:var(--muted)}
+
+/* rules: life table */
+.lifegrid .lifecell{display:flex;gap:6px;align-items:end}
+.lifegrid .lifecell .field{flex:1}
+.addlife{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.addlife .field{width:auto;flex:1 1 180px}
+.grantmeta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.grantmeta div{font-size:.85rem;background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:8px 10px}
+.grantmeta .lbl{display:block}
+.log{list-style:none;margin:0;padding:0;font-size:.88rem}
+.log li{padding:8px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.log li:first-child{border-top:0}
+
+/* reports */
+.report{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:18px}
+.report h2{font-size:1.4rem}
+.report h3{border-bottom:2px solid var(--navy);padding-bottom:4px}
+.rgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.rgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rgrid div{border:1px solid var(--line);border-radius:4px;padding:8px 10px}
+.rgrid .v{font-family:var(--f-display);font-size:1.3rem;font-weight:600;font-variant-numeric:tabular-nums}
+table.chk{min-width:620px} table.chk tbody tr,table.rlist tbody tr{cursor:default}
+table.rlist{min-width:1150px;font-size:.82rem}
+.ok{color:var(--ok);font-weight:600} .bad{color:var(--crit);font-weight:600}
+
+/* hover help */
+.tip{position:relative;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid currentColor;font:600 .65rem var(--f-body);color:var(--accent);cursor:help;vertical-align:middle;margin-left:4px;text-transform:none;letter-spacing:0}
+.tip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+@media print{
+  header.top,.noprint,.toast,nav.tabs{display:none!important}
+  body{background:#fff;color:#000}
+  main{padding:0}
+  .report{border:0;padding:0}
+  .tablewrap{overflow:visible;border:0}
+  table.rlist,table.chk{min-width:0}
+}
+
+.tipbox{position:fixed;z-index:60;max-width:min(320px,calc(100vw - 24px));padding:8px 10px;border-radius:4px;background:var(--navy-deep);color:#fff;font:400 .8rem/1.45 var(--f-body);box-shadow:var(--shadow);pointer-events:none}
+
+.authbar{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.85rem;color:var(--on-navy-muted)}
+.authbar strong{color:var(--on-navy)}
+.btn.authbtn{background:var(--gold);border-color:var(--gold);color:var(--navy-deep)}
+.authmsg{color:#ffd5d8;max-width:46ch}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Subrecipient Equipment Monitor</h1>
+      <span class="proto">Prototype · sample data</span>
+      <div class="authbar" id="authbar"></div>
+    </div>
+    <p class="sub">Tracks federally funded equipment held by subrecipients against 2 CFR 200.313, State contract D.20 and NDAA §889, and runs the Section III equipment test from the monitoring guide.</p>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-overview" aria-selected="true" data-view="overview">Overview</button>
+      <button role="tab" id="tab-register" aria-selected="false" data-view="register">Equipment register</button>
+      <button role="tab" id="tab-review" aria-selected="false" data-view="review">Equipment review</button>
+      <button role="tab" id="tab-reports" aria-selected="false" data-view="reports">Reports</button>
+      <button role="tab" id="tab-map" aria-selected="false" data-view="map">Map</button>
+      <button role="tab" id="tab-rules" aria-selected="false" data-view="rules">Grant rules</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="view-overview"></section>
+  <section class="view" id="view-register" hidden></section>
+  <section class="view" id="view-review" hidden></section>
+  <section class="view" id="view-reports" hidden></section>
+  <section class="view" id="view-map" hidden></section>
+  <section class="view" id="view-rules" hidden></section>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="d-title"></aside>
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="box" id="modal-box"></div></div>
+<div class="toast" id="toast" hidden role="status"></div>
+<div class="tipbox" id="tipbox" hidden role="tooltip"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* =====================================================================
+   ARCGIS SIGN-IN
+   clientId comes from the app registered in ArcGIS Online.
+   The redirect URI registered on that app must match this page's address,
+   e.g. https://jhoward270.github.io/Subrecipient-Monitoring/
+   For an ArcGIS Enterprise portal, change portal to https://<your-portal>/portal/sharing/rest
+   ===================================================================== */
+const ARCGIS = {
+  clientId: "BMAGdbDA6Ikd2Gms",
+  portal: "https://www.arcgis.com/sharing/rest",
+  redirectUri: location.origin + location.pathname
+};
+
+/* =====================================================================
+   EDIT YOUR AWARDS HERE
+   One entry per award. Use "Copy award list" on the Grant rules tab to
+   generate this block after adding awards in the app.
+   program: "HSGP" | "EMPG" | "PA"
+   fedThreshold: 5000 for awards issued before Oct 1, 2024; 10000 on or after
+   ===================================================================== */
+let AWARDS = [
+  {id:"HSGP22", program:"HSGP", fy:2022, label:"", fain:"EMW-2022-SS-XXXXX", fedShare:100, stateThreshold:5000, fedThreshold:5000, method:"SL", salvagePct:0},
+  {id:"HSGP23", program:"HSGP", fy:2023, label:"", fain:"", fedShare:100, stateThreshold:5000, fedThreshold:5000, method:"SL", salvagePct:0},
+  {id:"EMPG25", program:"EMPG", fy:2025, label:"", fain:"", fedShare:50, stateThreshold:5000, fedThreshold:10000, method:"SL", salvagePct:0},
+  {id:"PADR", program:"PA", fy:2025, label:"DR-XXXX-TN", fain:"", fedShare:75, stateThreshold:5000, fedThreshold:10000, method:"SL", salvagePct:0}
+];
+
+/* Useful life by category, in years. Example values: replace with the State's table. Add more on the Grant rules tab. */
+let CATEGORIES = { "Trailer":10, "Light tower":10, "Generator / power":10, "Detection / X-ray":7, "Communications":7, "PPE / Hazmat":5, "Software":3, "Other":5 };
+
+const PROGRAMS = {
+  HSGP:{ short:"HSGP", name:"Homeland Security Grant Program", fedShare:100,
+    notes:[["No cost share. Federal share defaults to 100%.", "FY 2025 HSGP NOFO"],
+           ["All assets supported with FY 2025 HSGP funding must be readily deployable.", "FY 2025 HSGP NOFO"]]},
+  EMPG:{ short:"EMPG", name:"Emergency Management Performance Grant", fedShare:50,
+    notes:[["Cost share is 50% federal and 50% state or local. New items default to a 50/50 split.", "TEMA EMPG program page"]]},
+  PA:{ short:"PA", name:"FEMA Public Assistance (disaster)", fedShare:75,
+    notes:[["Federal share is not less than 75% of eligible costs and can be raised for a disaster. Set it from the FEMA-State Agreement.", "Stafford Act §406; CRS IF11529"]]}
+};
+const COMMON_RULES = [
+  ["Subrecipients of a State follow 2 CFR 200.313(c)–(e). The State's own equipment follows State law.", "2 CFR 200.313(b)"],
+  ["Property records need: description, serial or ID number, funding source with FAIN, title holder, acquisition date, cost, federal %, location, use and condition, and disposition data.", "2 CFR 200.313(d)(1)"],
+  ["Physical inventory reconciled with records at least once every two years. This applies to each item and is done by the subrecipient.", "2 CFR 200.313(d)(2)"],
+  ["Disposal: items with current fair market value above the federal threshold per unit owe the federal % of market value or sale proceeds. Up to $1,000 of proceeds may be kept for selling costs if permitted.", "2 CFR 200.313(e)"],
+  ["Federal threshold is $10,000 for awards issued on or after Oct 1, 2024 and $5,000 for earlier awards. The equipment threshold is the lesser of that and the entity's own capitalization level.", "2 CFR 200.1; 2024 Uniform Guidance revision"],
+  ["State grant contracts define equipment as $5,000 or more and require State prior approval before any equipment purchase.", "TN grant contract D.20"],
+  ["Telecom and video surveillance equipment or services from Huawei, ZTE, Hytera, Hikvision or Dahua, or their subsidiaries and affiliates, cannot be bought with federal funds.", "NDAA FY2019 §889; 2 CFR 200.216"],
+  ["A cost that benefits more than one award is split by proportional benefit, or on a reasonable documented basis. It cannot be moved to another federal award to cover a shortfall.", "2 CFR 200.405(c)–(d)"],
+  ["Records for equipment bought with federal funds are kept for three years after final disposition.", "2 CFR 200.334(c)"]
+];
+
+/* Approximate city points for the demo map. County entries point to the county seat. */
+const SITES = {
+  jonesborough:{name:"Jonesborough", county:"Washington County", lat:36.294, lon:-82.474},
+  kingsport:{name:"Kingsport", county:"Sullivan County", lat:36.548, lon:-82.562},
+  bristol:{name:"Bristol", county:"Sullivan County", lat:36.586, lon:-82.189},
+  blountville:{name:"Blountville", county:"Sullivan County", lat:36.533, lon:-82.327},
+  elizabethton:{name:"Elizabethton", county:"Carter County", lat:36.349, lon:-82.211},
+  greeneville:{name:"Greeneville", county:"Greene County", lat:36.163, lon:-82.831},
+  johnsoncity:{name:"Johnson City", county:"Washington County", lat:36.313, lon:-82.354},
+  erwin:{name:"Erwin", county:"Unicoi County", lat:36.145, lon:-82.417},
+  rogersville:{name:"Rogersville", county:"Hawkins County", lat:36.407, lon:-83.006},
+  mountaincity:{name:"Mountain City", county:"Johnson County", lat:36.475, lon:-81.805},
+  nashville:{name:"Nashville", county:"Davidson County", lat:36.162, lon:-86.781}
+};
+const COUNTY_SEAT = {"washington county":"jonesborough","sullivan county":"blountville","carter county":"elizabethton","greene county":"greeneville","unicoi county":"erwin","hawkins county":"rogersville","johnson county":"mountaincity"};
+
+const LOCAL = "LOCAL";
+const BANNED = /huawei|\bzte\b|hytera|hikvision|dahua/i;
+const TELECOM = /camera|surveillance|cctv|\bnvr\b|\bdvr\b|radio|router|telecom|phone|video/i;
+const TIP889 = "Section 889 of the FY2019 National Defense Authorization Act, applied to grants by 2 CFR 200.216, bars using federal award funds on certain telecommunications and video surveillance equipment or services from Huawei, ZTE, Hytera, Hikvision or Dahua, or their subsidiaries and affiliates. “889 compliant” means the brand is not one of these companies or their affiliates. To check a brand, search the brand name plus “889 compliant”.";
+const TIPD20 = "Clause D.20 of the State grant contract defines equipment as $5,000 or more and requires the grantee to get State approval before buying any equipment under the contract.";
+
+/* ---------- sample items (made up from the HSGP 2022/2023 list) ---------- */
+let items = [
+ {id:1, tag:"3010", desc:"Reconview solar trailer with wireless cameras", make:"Reconview", serial:"1R91U0916SC916263", fund:"HSGP22", cost:32881.43, group:"1 of 3 · $98,644.30 total", acquired:"2025-04-07", sub:"Washington County", location:"Washington County Warehouse", site:"jonesborough", condition:"Good", title:"Washington County", cat:"Trailer", lastInv:"2025-05-01", approval:"2025-02-18"},
+ {id:2, tag:"3008", desc:"Reconview solar trailer with wireless cameras", make:"Reconview", serial:"1R91U091XSC916265", fund:"HSGP22", cost:32881.43, group:"2 of 3 · $98,644.30 total", acquired:"2025-04-07", sub:"Washington County", location:"Washington County Warehouse", site:"jonesborough", condition:"Good", title:"Washington County", cat:"Trailer", lastInv:"2025-05-01", approval:"2025-02-18"},
+ {id:3, tag:"3009", desc:"Reconview solar trailer with wireless cameras", make:"Reconview", serial:"1R91U0918SC916264", fund:"HSGP22", cost:32881.44, group:"3 of 3 · $98,644.30 total", acquired:"2025-04-07", sub:"Washington County", location:"Washington County Warehouse", site:"jonesborough", condition:"Good", title:"Washington County", cat:"Trailer", lastInv:"2025-05-01", approval:"2025-02-18"},
+ {id:4, tag:"3007", desc:"Stowers solar light tower", make:"Stowers", serial:"5F13S1015S1003820", fund:"HSGP22", cost:24625, group:"1 of 2 · $49,250 total", acquired:"2025-04-25", sub:"Washington County", location:"Washington County Warehouse", site:"jonesborough", condition:"Good", title:"Washington County", cat:"Light tower", lastInv:"", approval:"2025-03-04"},
+ {id:5, tag:"3006", desc:"Stowers solar light tower", make:"Stowers", serial:"5F13S1017S1003821", fund:"HSGP22", cost:24625, group:"2 of 2 · $49,250 total", acquired:"2025-04-25", sub:"Washington County", location:"Washington County Warehouse", site:"jonesborough", condition:"Good", title:"Washington County", cat:"Light tower", lastInv:"", approval:"2025-03-04"},
+ {id:6, tag:"3091", desc:"Scanna ScanX Scout with battery", make:"Scanna", serial:"042242", funding:[{src:"HSGP23", amt:14745.63},{src:"HSGP22", amt:6319.56}], basis:"Example: shared by two approved projects, 70% bomb squad X-ray (HSGP 2023) and 30% regional response (HSGP 2022).", cost:21065.19, group:"Example of a split across two grants", acquired:"2026-03-12", sub:"City of Kingsport", location:"Kingsport Bomb Squad – truck in garage", site:"kingsport", condition:"Good", title:"City of Kingsport", cat:"Detection / X-ray", lastInv:"", approval:"2026-01-22"},
+ {id:7, tag:"3092", desc:"Golden Engineering ORS3MD X-ray", make:"Golden Engineering", serial:"13591", fund:"HSGP23", cost:6825, group:"", acquired:"2026-03-12", sub:"City of Kingsport", location:"Kingsport Bomb Squad – truck in garage", site:"kingsport", condition:"Good", title:"City of Kingsport", cat:"Detection / X-ray", lastInv:"", approval:""},
+ {id:8, tag:"", desc:"LION MT94 rear-zip suit", make:"LION", serial:"0017923632", fund:"HSGP23", cost:15180, group:"1 of 4 agencies", acquired:"2026-03-27", sub:"City of Kingsport", location:"Kingsport Fire Department", site:"kingsport", condition:"Good", title:"City of Kingsport", cat:"PPE / Hazmat", lastInv:"", approval:"2026-02-10"},
+ {id:9, tag:"", desc:"LION MT94 rear-zip suit", make:"LION", serial:"0017923652", fund:"HSGP23", cost:15180, group:"2 of 4 agencies", acquired:"2026-03-27", sub:"City of Bristol", location:"Bristol Fire Department", site:"bristol", condition:"Good", title:"", cat:"PPE / Hazmat", lastInv:"", approval:"2026-02-10"},
+ {id:10, tag:"", desc:"Kappler Frontline 500 total encapsulating suit", make:"Kappler", serial:"390141", fund:"HSGP23", cost:11300, group:"1 of 4 agencies", acquired:"2026-03-27", sub:"City of Kingsport", location:"Kingsport Fire Department", site:"kingsport", condition:"Good", title:"City of Kingsport", cat:"PPE / Hazmat", lastInv:"", approval:"2026-02-10"},
+ {id:11, tag:"", desc:"Kappler Frontline 500 total encapsulating suit", make:"Kappler", serial:"390133", fund:"HSGP23", cost:11300, group:"2 of 4 agencies", acquired:"2026-03-27", sub:"City of Bristol", location:"Bristol Fire Department", site:"bristol", condition:"Good", title:"", cat:"PPE / Hazmat", lastInv:"", approval:""},
+ {id:12, tag:"4013", desc:"Wanco solar light tower", make:"Wanco", serial:"5F13S1015T1004015", fund:"HSGP23", cost:24410, group:"1 of 2 · $48,820 total", acquired:"2026-04-29", sub:"Sullivan County", location:"Sullivan County EMA", site:"blountville", condition:"Good", title:"Sullivan County", cat:"Light tower", lastInv:"", approval:"2026-03-30"},
+ {id:13, tag:"4014", desc:"Wanco solar light tower", make:"Wanco", serial:"5F13S1013T1004014", fund:"HSGP23", cost:24410, group:"2 of 2 · $48,820 total", acquired:"2026-04-29", sub:"Sullivan County", location:"Sullivan County EMA", site:"blountville", condition:"Good", title:"Sullivan County", cat:"Light tower", lastInv:"", approval:"2026-03-30"},
+ {id:14, tag:"3093", desc:"Homesteader 508IS enclosed trailer", make:"Homesteader", serial:"5HABE0819TN150627", fund:"HSGP23", cost:3370, group:"1 of 8 · $26,960 total", acquired:"2026-03-11", sub:"Carter County", location:"Carter County EMA", site:"elizabethton", condition:"Good", title:"Carter County", cat:"Trailer", lastInv:"", approval:""},
+ {id:15, tag:"", desc:"ShellBack Tactical ballistic helmets (10)", make:"ShellBack Tactical", serial:"", fund:"HSGP22", cost:724.99, group:"10 units · $7,249.90 total", acquired:"2025-04-28", sub:"Washington County", location:"5 at Erwin PD, other 5 W.C. EMA", site:"", condition:"Good", title:"", cat:"PPE / Hazmat", lastInv:"", approval:""},
+ {id:16, tag:"", desc:"KnowBe4 cybersecurity", make:"KnowBe4", serial:"", fund:"HSGP22", cost:22567.52, group:"", acquired:"2024-12-10", sub:"Washington County", location:"", site:"", condition:"", title:"", cat:"Software", lastInv:"", approval:"", intangible:true},
+ {id:17, tag:"4020", desc:"PTZ security camera", make:"Hikvision", serial:"DS2DE4425-0091", fund:"HSGP23", cost:6200, group:"Example added to show the §889 check", acquired:"2026-05-04", sub:"City of Bristol", location:"Bristol Police Department – rooftop", site:"bristol", condition:"Good", title:"City of Bristol", cat:"Communications", lastInv:"", approval:"2026-04-15"},
+ {id:18, tag:"4021", desc:"Mobile generator, 25 kW", make:"Generac", serial:"GN25-7781203", funding:[{src:"EMPG25", amt:12000},{src:LOCAL, amt:12000}], cost:24000, group:"Example of an EMPG 50/50 split", acquired:"2025-11-03", sub:"Sullivan County", location:"Sullivan County EMA", site:"blountville", condition:"Good", title:"Sullivan County", cat:"Generator / power", lastInv:"2026-06-01", approval:"2025-09-12"}
+];
+items.forEach(i => {
+  if (!i.funding) i.funding = [{src:i.fund, amt:i.cost}];
+  delete i.fund;
+  Object.assign(i, {basis:i.basis||"", ndaaOk:false, disp:null, archived:null});
+});
+let nextId = 100;
+const LOG = [];
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => n == null || n === "" || isNaN(n) ? "—" : (+n).toLocaleString("en-US",{style:"currency",currency:"USD"});
+const money0 = n => money(n).replace(/\.\d+$/,"");
+const pct = n => (Math.round(n*10)/10) + "%";
+const TODAY = new Date();
+const iso = d => d.toISOString().slice(0,10);
+const parse = d => d ? new Date(d + "T12:00:00") : null;
+const fmt = d => d ? d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—";
+const addMonths = (d,m) => { const x = new Date(d); x.setMonth(x.getMonth()+m); return x; };
+const monthsBetween = (a,b) => Math.max(0,(b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth()) - (b.getDate()<a.getDate()?1:0));
+const tip = (text, side) => `<span class="tip${side?" "+side:""}" tabindex="0" role="note" aria-label="${esc(text)}" data-tip="${esc(text)}">?</span>`;
+const round2 = n => Math.round(n*100)/100;
+
+const awardById = id => AWARDS.find(a => a.id === id);
+const award = id => awardById(id) || {id, program:"HSGP", fy:"?", label:"", fedShare:100, stateThreshold:5000, fedThreshold:5000, method:"SL", salvagePct:0, fain:""};
+const awardLabel = a => (PROGRAMS[a.program]?.short || a.program) + " " + (a.label ? a.label : "FY " + a.fy);
+const srcLabel = src => src === LOCAL ? "Local / State funds" : awardLabel(award(src));
+const activeAwards = () => AWARDS.filter(a => !a.archived);
+const effThreshold = a => Math.min(a.stateThreshold || Infinity, a.fedThreshold || Infinity);
+const fedLines = it => it.funding.filter(l => l.src !== LOCAL);
+const fedAmt = (it, id) => fedLines(it).filter(l => !id || l.src === id).reduce((s,l)=>s+(+l.amt||0),0);
+const fundTotal = it => it.funding.reduce((s,l)=>s+(+l.amt||0),0);
+const fedPct = it => it.cost ? fedAmt(it)/it.cost*100 : 0;
+const fundsAward = (it, id) => it.funding.some(l => l.src === id);
+const fedAwardIds = it => [...new Set(fedLines(it).map(l=>l.src))];
+const primary = it => { const f = fedLines(it).slice().sort((a,b)=>b.amt-a.amt)[0]; return f ? award(f.src) : null; };
+const itemThreshold = it => { const t = fedAwardIds(it).map(id => effThreshold(award(id))); return t.length ? Math.min(...t) : 5000; };
+const subs = () => [...new Set(items.map(i=>i.sub).filter(Boolean))].sort();
+
+function depreciation(it, asOf=TODAY){
+  const g = primary(it) || {method:"SL", salvagePct:0}, life = CATEGORIES[it.cat] || 0;
+  const start = parse(it.acquired);
+  const end = it.disp?.date ? parse(it.disp.date) : asOf;
+  const salvage = it.cost * ((g.salvagePct||0)/100);
+  const lifeM = life*12;
+  const months = start ? Math.min(monthsBetween(start,end), lifeM) : 0;
+  let book, monthly;
+  if (!lifeM){ book = it.cost; monthly = 0; }
+  else if (g.method === "DDB"){ const r=(2/life)/12; book=Math.max(salvage, it.cost*Math.pow(1-r, months)); monthly=book*r; }
+  else { monthly=(it.cost-salvage)/lifeM; book=it.cost-monthly*months; }
+  return { life, months, lifeM, monthly, accumulated: it.cost-book, book, fedBook: book*fedPct(it)/100, method:g.method };
+}
+
+function status(it){
+  if (it.archived) return {key:"archived", label:"Archived", cls:"p-mute"};
+  if (it.disp?.date) return {key:"disposed", label:"Disposed", cls:"p-mute"};
+  if (it.intangible) return {key:"review", label:"Review – not tangible", cls:"p-info"};
+  if (it.cost < itemThreshold(it)) return {key:"below", label:"Below threshold", cls:"p-mute"};
+  return {key:"equipment", label:"Equipment", cls:"p-ok"};
+}
+
+function inventory(it, asOf=TODAY){
+  if (!it.lastInv) return {due:null, state:"none", label:"No inventory recorded", cls:"p-crit"};
+  const due = addMonths(parse(it.lastInv), 24);
+  const days = (due - asOf)/864e5;
+  if (days < 0) return {due, state:"overdue", label:"Inventory overdue", cls:"p-crit"};
+  if (days <= 90) return {due, state:"soon", label:"Due within 90 days", cls:"p-warn"};
+  return {due, state:"ok", label:"Current", cls:"p-ok"};
+}
+
+const FLAG_DEFS = {
+  ndaa:{label:"Possible §889 prohibited brand", cls:"p-crit", ref:"NDAA §889", tip:TIP889},
+  approval:{label:"No State prior approval on file", cls:"p-crit", ref:"Contract D.20", tip:TIPD20},
+  split:{label:"Funding doesn't add up to unit cost", cls:"p-crit", ref:"§200.313(d)(1)"},
+  tag:{label:"Missing inventory tag", cls:"p-warn"},
+  serial:{label:"Missing serial / ID number", cls:"p-crit", ref:"§200.313(d)(1)"},
+  fain:{label:"Funding award has no FAIN on file", cls:"p-crit", ref:"§200.313(d)(1)"},
+  title:{label:"Title holder not recorded", cls:"p-crit", ref:"§200.313(d)(1)"},
+  inv:{label:"No physical inventory in last 2 years", cls:"p-crit", ref:"§200.313(d)(2)"},
+  loc:{label:"Location not specific", cls:"p-warn", ref:"§200.313(d)(1)"},
+  basis:{label:"Shared by 2+ federal awards – no allocation basis", cls:"p-warn", ref:"§200.405(d)"},
+  ndaaCheck:{label:"Camera or telecom item – confirm brand is §889 compliant", cls:"p-info", ref:"NDAA §889", tip:TIP889},
+  intangible:{label:"Software or subscription – confirm classification", cls:"p-info"}
+};
+const flagPill = k => { const d = FLAG_DEFS[k]; return `<span class="pill ${d.cls}" ${d.tip?`title="${esc(d.tip)}"`:""}>${d.ref || "Check"}</span>`; };
+
+function ndaaState(it){
+  const text = it.desc + " " + (it.make||"");
+  if (BANNED.test(text)) return "ndaa";
+  if (TELECOM.test(text) && !it.ndaaOk) return "ndaaCheck";
+  return "";
+}
+
+function flags(it, asOf=TODAY){
+  const st = status(it), f = [];
+  if (st.key === "disposed" || st.key === "archived") return f;
+  const n = ndaaState(it); if (n === "ndaa") f.push(n);
+  if (st.key === "review"){ f.push("intangible"); return f; }
+  if (st.key !== "equipment"){ if (n === "ndaaCheck") f.push(n); return f; }
+  if (!it.approval) f.push("approval");
+  if (Math.abs(fundTotal(it) - it.cost) > 0.01) f.push("split");
+  if (!it.tag) f.push("tag");
+  if (!it.serial) f.push("serial");
+  if (fedAwardIds(it).some(id => !award(id).fain)) f.push("fain");
+  if (!it.title) f.push("title");
+  const inv = inventory(it, asOf); if (inv.state === "none" || inv.state === "overdue") f.push("inv");
+  if (!it.location || /split|other|\*/i.test(it.location)) f.push("loc");
+  if (fedAwardIds(it).length > 1 && !it.basis.trim()) f.push("basis");
+  if (n === "ndaaCheck") f.push(n);
+  return f;
+}
+
+function fundingCell(it){
+  return `<div class="fundlist">${it.funding.map(l=>`<span>${esc(srcLabel(l.src))}${it.funding.length>1?` <span class="dim">${money0(l.amt)}</span>`:""}${l.src!==LOCAL && award(l.src).archived?' <span class="dim">(archived grant)</span>':""}</span>`).join("")}</div>`;
+}
+
+/* ---------- overview ---------- */
+let filter = { q:"", grant:"all", sub:"all", status:"active", flag:"" };
+function renderOverview(){
+  const eq = items.filter(i => status(i).key === "equipment");
+  const cost = eq.reduce((s,i)=>s+i.cost,0);
+  const book = eq.reduce((s,i)=>s+depreciation(i).book,0);
+  const fed = eq.reduce((s,i)=>s+depreciation(i).fedBook,0);
+  const flagged = eq.filter(i => flags(i).length).length;
+  const counts = {};
+  items.forEach(i => flags(i).forEach(k => counts[k]=(counts[k]||0)+1));
+  const below = items.filter(i=>status(i).key==="below").length;
+  const archived = items.filter(i=>i.archived).length;
+  const sched = eq.map(i=>({i, inv:inventory(i)})).sort((a,b)=>(a.inv.due?.getTime() ?? -1)-(b.inv.due?.getTime() ?? -1)).slice(0,6);
+  $("#view-overview").innerHTML = `
+    <div class="stats">
+      <div class="stat"><span class="k">Items on register</span><span class="v">${eq.length}</span><span class="d">of ${items.length} submitted lines${archived?` · ${archived} archived`:""}</span></div>
+      <div class="stat"><span class="k">Acquisition cost</span><span class="v">${money0(cost)}</span><span class="d">equipment at or above threshold</span></div>
+      <div class="stat"><span class="k">Current book value</span><span class="v">${money0(book)}</span><span class="d">federal share ${money0(fed)} · as of ${fmt(TODAY)}</span></div>
+      <div class="stat alert"><span class="k">Items needing action</span><span class="v" style="color:var(--crit)">${flagged}</span><span class="d">missing a required record field</span></div>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <h3>Record gaps</h3>
+        <ul class="flaglist">
+          ${Object.entries(FLAG_DEFS).filter(([k])=>counts[k]).map(([k,d])=>`
+            <li>${flagPill(k)}<span>${d.label}${d.tip?tip(d.tip):""}</span>
+            <span><span class="count">${counts[k]}</span> <button class="linkbtn" data-flag="${k}">View</button></span></li>`).join("") || "<li><span></span><span>No gaps found.</span><span></span></li>"}
+          <li><span class="pill p-mute">Info</span><span>Submitted lines below the award's equipment threshold (treated as supplies)</span><span><span class="count">${below}</span> <button class="linkbtn" data-status="below">View</button></span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Physical inventory schedule</h3>
+        <p class="note">Each item needs an inventory reconciled with its record at least once every two years.</p>
+        <ul class="sched">
+          ${sched.map(({i,inv})=>`<li><span>${i.tag?`<span class="assettag">${esc(i.tag)}</span> `:""}${esc(i.desc)}</span><span class="pill ${inv.cls}">${inv.due?"Due "+fmt(inv.due):inv.label}</span></li>`).join("")}
+        </ul>
+      </div>
+    </div>`;
+  $("#view-overview").querySelectorAll("[data-flag]").forEach(b=>b.onclick=()=>{filter={q:"",grant:"all",sub:"all",status:"active",flag:b.dataset.flag};show("register");});
+  $("#view-overview").querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>{filter={q:"",grant:"all",sub:"all",status:b.dataset.status,flag:""};show("register");});
+}
+
+/* ---------- register ---------- */
+let uploadOpen = false;
+function renderRegister(){
+  const v = $("#view-register");
+  v.innerHTML = `
+    <div class="toolbar">
+      <div class="filters">
+        <div class="field"><label for="f-q">Search</label><input type="search" id="f-q" placeholder="Tag, serial, description, brand, location"></div>
+        <div class="field"><label for="f-sub">Subrecipient</label><select id="f-sub"><option value="all">All subrecipients</option>${subs().map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join("")}</select></div>
+        <div class="field"><label for="f-grant">Grant</label><select id="f-grant"><option value="all">All grants</option>${AWARDS.map(g=>`<option value="${esc(g.id)}">${esc(awardLabel(g))}${g.archived?" (archived)":""}</option>`).join("")}<option value="${LOCAL}">Local / State funds</option></select></div>
+        <div class="field"><label for="f-status">Status</label><select id="f-status">
+          <option value="active">All active lines</option><option value="equipment">Equipment</option><option value="below">Below threshold</option><option value="review">Needs review</option><option value="disposed">Disposed</option><option value="archived">Archived</option></select></div>
+        <div class="field"><label for="f-flag">Record gap</label><select id="f-flag"><option value="">Any</option>${Object.entries(FLAG_DEFS).map(([k,d])=>`<option value="${k}">${d.label}</option>`).join("")}</select></div>
+      </div>
+      <div class="btns">
+        <button class="btn" id="add-item">Add item</button>
+        <button class="btn ghost" id="up-toggle" aria-expanded="${uploadOpen}">${uploadOpen?"Close upload":"Upload from Excel"}</button>
+      </div>
+    </div>
+    <div id="upload-area" ${uploadOpen?"":"hidden"}></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Tag</th><th>Description</th><th>Serial</th><th>Funding</th><th>Location / title holder</th><th class="num">Unit cost</th><th class="num">Book value</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="reg-body"></tbody></table></div>
+    <p class="note" id="reg-count"></p>`;
+  $("#f-q").value = filter.q; $("#f-sub").value = filter.sub; $("#f-grant").value = filter.grant; $("#f-status").value = filter.status; $("#f-flag").value = filter.flag;
+  ["f-q","f-sub","f-grant","f-status","f-flag"].forEach(id => $("#"+id).addEventListener("input", ()=>{
+    filter = { q:$("#f-q").value, sub:$("#f-sub").value, grant:$("#f-grant").value, status:$("#f-status").value, flag:$("#f-flag").value }; drawRows();
+  }));
+  $("#add-item").onclick = ()=>openAddForm();
+  $("#up-toggle").onclick = ()=>{ uploadOpen = !uploadOpen; if (!uploadOpen) up = null; renderRegister(); };
+  if (uploadOpen) renderUpload();
+  drawRows();
+}
+
+function drawRows(){
+  const q = filter.q.trim().toLowerCase();
+  const rows = items.filter(i=>{
+    const st = status(i).key;
+    if (filter.status === "active" ? st === "archived" : st !== filter.status) return false;
+    if (filter.sub !== "all" && i.sub !== filter.sub) return false;
+    if (filter.grant !== "all" && !fundsAward(i, filter.grant)) return false;
+    if (filter.flag && !flags(i).includes(filter.flag)) return false;
+    if (q && ![i.tag,i.serial,i.desc,i.location,i.title,i.sub,i.make].join(" ").toLowerCase().includes(q)) return false;
+    return true;
+  });
+  $("#reg-body").innerHTML = rows.map(i=>{
+    const st = status(i), fl = flags(i), d = depreciation(i);
+    const canDispose = st.key !== "disposed" && st.key !== "archived";
+    return `<tr tabindex="0" data-id="${i.id}">
+      <td>${i.tag?`<span class="assettag">${esc(i.tag)}</span>`:`<span class="notag">no tag</span>`}</td>
+      <td><div class="desc">${esc(i.desc)}</div>${i.group?`<div class="dim">${esc(i.group)}</div>`:""}</td>
+      <td class="mono">${esc(i.serial)||'<span class="dim">—</span>'}</td>
+      <td>${fundingCell(i)}</td>
+      <td>${esc(i.location)||'<span class="dim">—</span>'}<div class="dim">${i.title?"Title: "+esc(i.title):"Title holder not recorded"}</div></td>
+      <td class="num">${money(i.cost)}</td>
+      <td class="num">${st.key==="equipment"||st.key==="disposed"?money(d.book):'<span class="dim">—</span>'}</td>
+      <td><div class="chips"><span class="pill ${st.cls}">${st.label}</span>${fl.length?`<span class="pill p-crit">${fl.length} gap${fl.length>1?"s":""}</span>`:""}</div></td>
+      <td><div class="rowbtns"><button class="btn sm ghost" data-act="open" data-id="${i.id}">Open record</button>${canDispose?`<button class="btn sm warnbtn" data-act="disp" data-id="${i.id}">Dispose</button>`:""}</div></td>
+    </tr>`;}).join("") || `<tr><td colspan="9" class="dim">No items match these filters.</td></tr>`;
+  $("#reg-count").textContent = `Showing ${rows.length} of ${items.length} lines. Open record shows the full property record, funding, approval, depreciation and inventory. Dispose goes straight to the disposal form.`;
+  $("#reg-body").querySelectorAll("tr[data-id]").forEach(tr=>{
+    tr.onclick = e=>{ const b = e.target.closest("[data-act]"); openItem(+tr.dataset.id, b?.dataset.act === "disp" ? "blk-disp" : ""); };
+    tr.onkeydown = e=>{ if(e.key==="Enter" && e.target === tr) openItem(+tr.dataset.id); };
+  });
+}
+
+/* ---------- funding editor (used by add form and item record) ---------- */
+function mountFunding(container, lines, getCost){
+  const draw = ()=>{
+    const cost = getCost(), total = lines.reduce((s,l)=>s+(+l.amt||0),0);
+    const fedIds = [...new Set(lines.filter(l=>l.src&&l.src!==LOCAL).map(l=>l.src))];
+    const hint = lines.length===1 && lines[0].src && lines[0].src!==LOCAL && award(lines[0].src).fedShare<100 ? award(lines[0].src) : null;
+    container.innerHTML = `<div class="fund-ed">
+      ${lines.map((l,n)=>`<div class="fund-row">
+        <select aria-label="Funding source ${n+1}" data-n="${n}" data-k="src"><option value="">Choose a source…</option>${activeAwards().map(a=>`<option value="${esc(a.id)}" ${l.src===a.id?"selected":""}>${esc(awardLabel(a))}</option>`).join("")}${l.src && l.src!==LOCAL && award(l.src).archived?`<option selected value="${esc(l.src)}">${esc(srcLabel(l.src))} (archived)</option>`:""}<option value="${LOCAL}" ${l.src===LOCAL?"selected":""}>Local / State funds (non-federal)</option></select>
+        <input type="number" step="0.01" min="0" aria-label="Amount ${n+1}" data-n="${n}" data-k="amt" value="${l.amt===""||l.amt==null?"":l.amt}" placeholder="Amount">
+        <button type="button" class="iconbtn" data-del="${n}" aria-label="Remove funding source ${n+1}" ${lines.length<2?"disabled":""}>×</button>
+      </div>`).join("")}
+      <div class="btns"><button type="button" class="btn sm ghost" data-addline>Add funding source</button>${hint?`<button type="button" class="btn sm ghost" data-share>Apply ${esc(PROGRAMS[hint.program].short)} ${hint.fedShare}/${100-hint.fedShare} split</button>`:""}</div>
+      <div class="fund-tot ${cost && Math.abs(total-cost)>0.01?"bad":""}">Total ${money(total)} of ${money(cost||0)} unit cost${cost && Math.abs(total-cost)>0.01?` · ${total<cost?"short":"over"} by ${money(Math.abs(cost-total))}`:""}${cost?` · federal ${pct(lines.filter(l=>l.src&&l.src!==LOCAL).reduce((s,l)=>s+(+l.amt||0),0)/cost*100)}`:""}</div>
+      ${fedIds.length>1?`<p class="note">More than one federal award: record the allocation basis below (2 CFR 200.405(d)).</p>`:""}
+    </div>`;
+    container.querySelectorAll("[data-k]").forEach(el=>el.addEventListener("change",()=>{
+      const l = lines[+el.dataset.n];
+      if (el.dataset.k==="amt") l.amt = el.value === "" ? "" : round2(+el.value);
+      else { l.src = el.value; if ((l.amt===""||l.amt==null) && getCost()) l.amt = round2(Math.max(0, getCost() - lines.reduce((s,x)=>s+(+x.amt||0),0))); }
+      draw();
+    }));
+    container.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ lines.splice(+b.dataset.del,1); draw(); });
+    container.querySelector("[data-addline]").onclick = ()=>{ const c=getCost(), t=lines.reduce((s,l)=>s+(+l.amt||0),0); lines.push({src:"", amt: c ? round2(Math.max(0,c-t)) : ""}); draw(); };
+    const sh = container.querySelector("[data-share]");
+    if (sh) sh.onclick = ()=>{ const c = getCost(); const f = round2(c*hint.fedShare/100); lines.splice(0, lines.length, {src:hint.id, amt:f}, {src:LOCAL, amt:round2(c-f)}); draw(); };
+  };
+  draw();
+  return draw;
+}
+
+/* ---------- add item ---------- */
+let lastAdd = {};
+function openAddForm(keep){
+  const p = keep || {};
+  const lines = (p.funding || [{src:"", amt:""}]).map(l=>({...l}));
+  openId = "new";
+  $("#drawer").innerHTML = `
+    <div class="dhead"><div><div class="chips"><span class="pill p-info">New item</span></div><h2 id="d-title">Add an inventory item</h2></div><button class="closebtn" id="d-close" aria-label="Close">×</button></div>
+    <div class="dbody">
+      <form class="dform" id="add-form" novalidate>
+        <p class="note wide">Fields marked * are required. The rest can be filled in later; missing record fields show up as gaps.</p>
+        <div class="field wide"><label for="a-sub">Subrecipient *</label><select id="a-sub">${subs().map(s=>`<option ${s===p.sub?"selected":""}>${esc(s)}</option>`).join("")}<option value="__new">New subrecipient…</option></select></div>
+        <div class="field wide" id="a-subnew-wrap" hidden><label for="a-subnew">New subrecipient name *</label><input id="a-subnew"></div>
+        <div class="field wide"><label for="a-desc">Description *</label><input id="a-desc" placeholder="e.g. Wanco solar light tower"></div>
+        <div class="field"><label for="a-make">Manufacturer ${tip(TIP889,"l")}</label><input id="a-make" placeholder="Brand on the item"></div>
+        <div class="field"><label for="a-cat">Category (sets useful life)</label><select id="a-cat">${Object.keys(CATEGORIES).map(c=>`<option ${c===p.cat?"selected":""}>${esc(c)}</option>`).join("")}</select></div>
+        <div class="field"><label for="a-serial">Serial / ID number</label><input id="a-serial"></div>
+        <div class="field"><label for="a-tag">Inventory tag</label><input id="a-tag"></div>
+        <div class="field"><label for="a-acq">Acquisition date *</label><input type="date" id="a-acq" value="${esc(p.acquired||"")}"></div>
+        <div class="field"><label for="a-cost">Unit cost *</label><input type="number" step="0.01" min="0" id="a-cost" value="${esc(p.cost??"")}"></div>
+        <div class="field wide"><span class="lbl">Funding *</span><div id="a-fund"></div></div>
+        <div class="field wide"><label for="a-basis">Allocation basis (when more than one federal award)</label><input id="a-basis" value="${esc(p.basis||"")}" placeholder="How the cost was split"></div>
+        <div class="field"><label for="a-title">Title holder</label><input id="a-title" value="${esc(p.title||"")}"></div>
+        <div class="field"><label for="a-cond">Use and condition</label><input id="a-cond" list="cond-list" value="${esc(p.condition||"Good")}"><datalist id="cond-list"><option>Good</option><option>Fair</option><option>Poor</option><option>Damaged</option><option>Missing</option></datalist></div>
+        <div class="field wide"><label for="a-loc">Location</label><input id="a-loc" value="${esc(p.location||"")}" placeholder="Building and agency"></div>
+        <div class="field"><label for="a-site">Map location</label><select id="a-site"><option value="">Not on map</option>${Object.entries(SITES).map(([k,s])=>`<option value="${k}" ${k===p.site?"selected":""}>${esc(s.name)} · ${esc(s.county)}</option>`).join("")}</select></div>
+        <div class="field"><label for="a-appr">State prior approval date ${tip(TIPD20,"r")}</label><input type="date" id="a-appr" value="${esc(p.approval||"")}"></div>
+        <div class="field"><label for="a-inv">Last physical inventory</label><input type="date" id="a-inv"></div>
+        <p class="note wide" id="a-msg" role="alert"></p>
+        <div class="btns wide"><button class="btn" type="submit">Add item</button><button class="btn ghost" type="button" id="a-another">Add and start another</button></div>
+      </form>
+    </div>`;
+  $("#scrim").hidden = false; $("#drawer").hidden = false;
+  $("#d-close").onclick = closeItem;
+  const redraw = mountFunding($("#a-fund"), lines, ()=>+$("#a-cost").value||0);
+  $("#a-cost").addEventListener("change", ()=>{ if (lines.length===1 && lines[0].src && (lines[0].amt===""||!lines[0].amt)) lines[0].amt = +$("#a-cost").value||""; redraw(); });
+  $("#a-sub").onchange = ()=>{ $("#a-subnew-wrap").hidden = $("#a-sub").value !== "__new"; };
+  if (!subs().length){ $("#a-sub").value = "__new"; $("#a-subnew-wrap").hidden = false; }
+  $("#a-desc").focus();
+  const submit = (another)=>{
+    const sub = $("#a-sub").value === "__new" ? $("#a-subnew").value.trim() : $("#a-sub").value;
+    const cost = parseFloat($("#a-cost").value);
+    const errs = [];
+    if (!sub) errs.push("subrecipient");
+    if (!$("#a-desc").value.trim()) errs.push("description");
+    if (!$("#a-acq").value) errs.push("acquisition date");
+    if (isNaN(cost) || cost <= 0) errs.push("unit cost");
+    const good = lines.filter(l=>l.src && +l.amt>0);
+    if (!good.length) errs.push("at least one funding source with an amount");
+    if (errs.length){ $("#a-msg").innerHTML = `<strong style="color:var(--crit)">Add the ${errs.join(", ")} to save this item.</strong>`; return; }
+    const it = { id:nextId++, tag:$("#a-tag").value.trim(), desc:$("#a-desc").value.trim(), make:$("#a-make").value.trim(), serial:$("#a-serial").value.trim(),
+      funding:good.map(l=>({src:l.src, amt:+l.amt})), basis:$("#a-basis").value.trim(), cost:round2(cost), group:"Added manually", acquired:$("#a-acq").value,
+      sub, location:$("#a-loc").value.trim(), site:$("#a-site").value, condition:$("#a-cond").value.trim(), title:$("#a-title").value.trim(), cat:$("#a-cat").value,
+      lastInv:$("#a-inv").value, approval:$("#a-appr").value, ndaaOk:false, disp:null, archived:null, intangible:$("#a-cat").value==="Software" };
+    items.push(it);
+    toast(`Added ${it.desc}`);
+    if (another) openAddForm({sub, cat:it.cat, acquired:it.acquired, cost:it.cost, funding:it.funding, basis:it.basis, title:it.title, location:it.location, site:it.site, condition:it.condition, approval:it.approval});
+    else { closeItem(); filter={q:"",grant:"all",sub:"all",status:"active",flag:""}; refresh(); }
+    if (another) refresh();
+  };
+  $("#add-form").onsubmit = e=>{ e.preventDefault(); submit(false); };
+  $("#a-another").onclick = ()=>submit(true);
+}
+
+/* ---------- Excel upload ---------- */
+let up = null;
+const FIELDS = [
+  {k:"tag", label:"Inventory tag", re:/tag/i},
+  {k:"serial", label:"Serial / ID number", re:/serial|s\/n|\bvin\b/i},
+  {k:"desc", label:"Description", re:/desc|item name|equipment/i, req:true},
+  {k:"make", label:"Manufacturer", re:/manufact|\bmake\b|brand|vendor/i},
+  {k:"approval", label:"Prior approval date", re:/approv/i},
+  {k:"lastInv", label:"Last physical inventory", re:/inventor(y|ied) date|last inv/i},
+  {k:"acquired", label:"Acquisition date", re:/purchase|acqui|date/i, req:true},
+  {k:"fund", label:"Funding source / grant", re:/fund|grant|source|award/i},
+  {k:"cost", label:"Unit cost", re:/cost|price|amount/i, req:true},
+  {k:"location", label:"Location", re:/locat/i},
+  {k:"condition", label:"Use and condition", re:/condit/i},
+  {k:"title", label:"Title holder", re:/title|owner/i},
+  {k:"cat", label:"Category", re:/categ|class/i}
+];
+const TEMPLATE_HEAD = ["Inventory tag","Description","Manufacturer","Serial number","Acquisition date","Funding source","Unit cost","Location","Use and condition","Title holder","Prior approval date","Last physical inventory","Category"];
+
+function guessCat(desc){
+  const d = desc.toLowerCase();
+  const custom = Object.keys(CATEGORIES).find(c => !["Other"].includes(c) && d.includes(c.toLowerCase()));
+  if (custom) return custom;
+  if (/trailer/.test(d)) return "Trailer";
+  if (/light tower/.test(d)) return "Light tower";
+  if (/generator/.test(d)) return "Generator / power";
+  if (/x-?ray|scan|detect/.test(d)) return "Detection / X-ray";
+  if (/radio|camera|router|repeater/.test(d)) return "Communications";
+  if (/suit|helmet|mask|boot|vest|plate|carrier|ppe/.test(d)) return "PPE / Hazmat";
+  if (/software|license|subscription|knowbe4/.test(d)) return "Software";
+  return CATEGORIES["Other"] != null ? "Other" : Object.keys(CATEGORIES)[0];
+}
+function guessSite(loc){
+  const l = (loc||"").toLowerCase();
+  for (const [k,s] of Object.entries(SITES)) if (l.includes(s.name.toLowerCase())) return k;
+  for (const [c,k] of Object.entries(COUNTY_SEAT)) if (l.includes(c)) return k;
+  return "";
+}
+function toISODate(v){
+  if (v === "" || v == null) return "";
+  if (typeof v === "number" && v > 20000 && v < 80000){ const d = new Date(Math.round((v-25569)*864e5)); return iso(d); }
+  const s = String(v).trim(); let m;
+  if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/))){ const y = m[3].length===2 ? "20"+m[3] : m[3]; return `${y}-${m[1].padStart(2,"0")}-${m[2].padStart(2,"0")}`; }
+  if ((m = s.match(/^(\d{4})-(\d{2})-(\d{2})/))) return m[0];
+  return "invalid";
+}
+function toNum(v){ if (typeof v === "number") return v; const s = String(v??"").replace(/[$,\s]/g,""); return s === "" ? NaN : parseFloat(s); }
+function resolveFund(text, fallback){
+  const t = String(text||"").toLowerCase();
+  if (!t) return fallback;
+  if (/local|county funds|city funds|state funds/.test(t)) return LOCAL;
+  const prog = /homeland|hsgp|shsp|uasi/.test(t) ? "HSGP" : /empg|performance/.test(t) ? "EMPG" : /public assistance|\bdr-?\d|disaster|\bpa\b/.test(t) ? "PA" : "";
+  const y = (t.match(/20(\d\d)/)||[])[0];
+  const hit = AWARDS.find(a => !a.archived && a.program === prog && (!y || String(a.fy) === y));
+  return hit ? hit.id : fallback;
+}
+
+function renderUpload(){
+  const area = $("#upload-area");
+  if (!up || !up.wb){
+    area.innerHTML = `<div class="upload" id="drop">
+      <h3>Upload equipment from Excel</h3>
+      <p class="note">Choose an .xlsx or .csv file, or drag one here. You'll match its columns to the app's fields and check every row before anything is added.</p>
+      <div class="btns"><label class="btn" for="up-file" style="display:inline-flex;align-items:center">Choose file</label><input type="file" id="up-file" accept=".xlsx,.xls,.csv" hidden><button class="btn ghost" id="up-tpl">Download blank template (CSV)</button></div>
+      <p class="note" id="up-msg">${typeof XLSX === "undefined" ? "The spreadsheet reader didn't load. Check your connection and reload the page." : "The template download works on the GitHub version of this page."}</p>
+    </div>`;
+    const drop = $("#drop");
+    ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault(); drop.classList.add("drag");}));
+    ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault(); drop.classList.remove("drag");}));
+    drop.addEventListener("drop", e=>{ const f = e.dataTransfer.files[0]; if (f) readFile(f); });
+    $("#up-file").onchange = e=>{ const f = e.target.files[0]; if (f) readFile(f); };
+    $("#up-tpl").onclick = ()=>{
+      const csv = TEMPLATE_HEAD.join(",") + "\n" + '4022,"Wanco solar light tower",Wanco,5F13S1015T1004099,2026-04-29,"HSGP 2023",24410,"Sullivan County EMA",Good,"Sullivan County",2026-03-30,,Light tower\n';
+      try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download = "equipment-upload-template.csv"; document.body.appendChild(a); a.click(); a.remove(); toast("Template downloaded"); }
+      catch(e){ toast("Downloads are blocked here. Use the GitHub version."); }
+    };
+    return;
+  }
+  const sheetRows = getSheetRows();
+  const headers = sheetRows[up.headerRow] || [];
+  area.innerHTML = `<div class="upload">
+    <div class="toolbar"><h3>Upload: ${esc(up.name)}</h3><button class="btn sm ghost" id="up-reset">Choose a different file</button></div>
+    <div class="revhead">
+      <div class="field"><label for="up-sheet">Sheet</label><select id="up-sheet">${up.wb.SheetNames.map(s=>`<option ${s===up.sheet?"selected":""}>${esc(s)}</option>`).join("")}</select></div>
+      <div class="field"><label for="up-hdr">Header row</label><input type="number" id="up-hdr" min="1" value="${up.headerRow+1}"></div>
+      <div class="field"><label for="up-sub">Subrecipient for these rows</label><select id="up-sub">${subs().map(s=>`<option ${s===up.sub?"selected":""}>${esc(s)}</option>`).join("")}<option value="__new" ${up.sub==="__new"?"selected":""}>New subrecipient…</option></select></div>
+      ${up.sub==="__new"?`<div class="field"><label for="up-subnew">New subrecipient name</label><input id="up-subnew" value="${esc(up.subNew||"")}"></div>`:""}
+      <div class="field"><label for="up-award">Grant when the row doesn't say</label><select id="up-award">${activeAwards().map(a=>`<option value="${esc(a.id)}" ${a.id===up.award?"selected":""}>${esc(awardLabel(a))}</option>`).join("")}</select></div>
+    </div>
+    <div><h3>Match columns</h3><p class="note">Guessed from the header row. Change any that are wrong. Required: description, acquisition date, unit cost.</p></div>
+    <div class="mapgrid2">${FIELDS.map(f=>`<div class="field"><label for="m-${f.k}">${f.label}${f.req?" *":""}</label><select id="m-${f.k}" data-map="${f.k}"><option value="-1">Not in file</option>${headers.map((h,c)=>`<option value="${c}" ${up.map[f.k]===c?"selected":""}>${esc(String(h).trim()||"Column "+(c+1))}</option>`).join("")}</select></div>`).join("")}</div>
+    <div id="up-prev"></div>
+  </div>`;
+  $("#up-reset").onclick = ()=>{ up = null; renderUpload(); };
+  $("#up-sheet").onchange = e=>{ up.sheet = e.target.value; autoHeader(); renderUpload(); };
+  $("#up-hdr").onchange = e=>{ up.headerRow = Math.max(0,(+e.target.value||1)-1); guessMap(); renderUpload(); };
+  $("#up-sub").onchange = e=>{ up.sub = e.target.value; renderUpload(); };
+  const sn = $("#up-subnew"); if (sn) sn.onchange = e=>{ up.subNew = e.target.value.trim(); drawPreview(); };
+  $("#up-award").onchange = e=>{ up.award = e.target.value; drawPreview(); };
+  document.querySelectorAll("[data-map]").forEach(el=>el.onchange = ()=>{ up.map[el.dataset.map] = +el.value; drawPreview(); });
+  drawPreview();
+}
+function readFile(file){
+  if (typeof XLSX === "undefined"){ toast("The spreadsheet reader didn't load"); return; }
+  const r = new FileReader();
+  r.onload = e=>{
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type:"array", cellDates:false});
+      up = { wb, name:file.name, sheet:wb.SheetNames[0], headerRow:0, map:{}, sub:subs()[0]||"__new", subNew:"", award:activeAwards()[0]?.id, include:{} };
+      autoHeader(); renderUpload();
+    } catch(err){ $("#up-msg").textContent = "That file couldn't be read. Save it as .xlsx or .csv and try again."; }
+  };
+  r.readAsArrayBuffer(file);
+}
+function getSheetRows(){ return XLSX.utils.sheet_to_json(up.wb.Sheets[up.sheet], {header:1, raw:true, defval:""}); }
+function autoHeader(){
+  const rows = getSheetRows();
+  let best = 0, score = -1;
+  rows.slice(0,15).forEach((r,n)=>{ const s = r.filter(c=>/desc|serial|cost|tag|location|date|fund/i.test(String(c))).length; if (s > score){ score = s; best = n; } });
+  up.headerRow = best; guessMap();
+}
+function guessMap(){
+  const headers = (getSheetRows()[up.headerRow]||[]).map(h=>String(h).trim());
+  const used = new Set(); up.map = {};
+  FIELDS.forEach(f=>{ const c = headers.findIndex((h,i)=>h && !used.has(i) && f.re.test(h)); up.map[f.k] = c; if (c>=0) used.add(c); });
+  up.include = {};
+}
+function buildRows(){
+  const rows = getSheetRows().slice(up.headerRow+1);
+  const hdr = (getSheetRows()[up.headerRow]||[]).map(h=>String(h).trim());
+  const clean = v => typeof v === "string" ? v.trim() : v;
+  // Merged header cells often leave the data one column left or right of its header; look there when the header's own column is empty.
+  const get = (r,k)=>{ const c = up.map[k]; if (c==null || c<0) return ""; let v = clean(r[c]);
+    if (v === "" || v == null) for (const d of [-1,1]) { const n = c+d; if (n>=0 && !hdr[n] && clean(r[n]) !== "" && r[n] != null){ v = clean(r[n]); break; } }
+    return v; };
+  const sub = up.sub === "__new" ? (up.subNew||"") : up.sub;
+  const groups = [], out = [];
+  let cur = null;
+  rows.forEach((r, n)=>{
+    const rowNo = up.headerRow + 2 + n;
+    const v = {}; FIELDS.forEach(f=>v[f.k]=get(r,f.k));
+    const has = k => v[k] !== "" && v[k] != null;
+    const any = FIELDS.some(f=>has(f.k));
+    if (!any) return;
+    if (!has("desc") && !has("serial") && !has("tag") && !has("cost")){ out.push({rowNo, skip:"Note or footnote row", raw:r.filter(Boolean).join(" ")}); return; }
+    if (!has("desc") && (has("serial") || has("tag"))){
+      if (cur) cur.units.push({rowNo, v});
+      else out.push({rowNo, skip:"Serial or tag with no description above it", raw:r.filter(Boolean).join(" ")});
+      return;
+    }
+    cur = {rowNo, v, units: (has("serial")||has("tag")) ? [{rowNo, v}] : []};
+    groups.push(cur);
+  });
+  groups.forEach(g=>{
+    let units = g.units.length ? g.units : [{rowNo:g.rowNo, v:g.v}];
+    const expanded = [];
+    units.forEach(u=>{
+      const tags = String(u.v.tag||"").match(/\d+/g) || [];
+      if (tags.length > 1) tags.forEach(t=>expanded.push({rowNo:u.rowNo, v:{...u.v, tag:t}, multiTag:true}));
+      else expanded.push(u);
+    });
+    const total = toNum(g.v.cost);
+    const childHaveCost = expanded.length > 1 && expanded.every(u=>u.rowNo !== g.rowNo && !isNaN(toNum(u.v.cost)) && toNum(u.v.cost) > 0);
+    const n = expanded.length;
+    expanded.forEach((u, idx)=>{
+      const pick = k => (u.v[k] !== "" && u.v[k] != null) ? u.v[k] : g.v[k];
+      let cost = childHaveCost ? toNum(u.v.cost) : (n > 1 ? (isNaN(total)?NaN: (idx === n-1 ? round2(total - round2(total/n)*(n-1)) : round2(total/n))) : total);
+      const desc = String(g.v.desc||"").trim();
+      const acquired = toISODate(pick("acquired"));
+      const fundSrc = resolveFund(pick("fund"), up.award);
+      const location = String(pick("location")||"").trim();
+      const cat = pick("cat") && CATEGORIES[pick("cat")] != null ? pick("cat") : guessCat(desc);
+      const it = { tag:String(u.v.tag||"").trim(), desc, make:String(pick("make")||"").trim(), serial:String(u.v.serial||"").trim(), cost:isNaN(cost)?NaN:round2(cost),
+        acquired, approval: toISODate(pick("approval")), lastInv: toISODate(pick("lastInv")), location, site:guessSite(location), condition:String(pick("condition")||"").trim(),
+        title:String(pick("title")||"").trim(), cat, sub, funding:[{src:fundSrc, amt:isNaN(cost)?0:round2(cost)}], fundText:String(pick("fund")||""),
+        group: n>1 ? `${idx+1} of ${n} · ${isNaN(total)?"":money(total)+" total"} · from row ${g.rowNo}` : `From row ${u.rowNo}`, rowNo:u.rowNo, multiTag:u.multiTag };
+      if (it.approval === "invalid") it.approval = "";
+      if (it.lastInv === "invalid") it.lastInv = "";
+      out.push({rowNo:u.rowNo, it});
+    });
+  });
+  // checks
+  const serialSeen = {};
+  out.filter(o=>o.it && o.it.serial).forEach(o=>{ const s=o.it.serial.toLowerCase(); serialSeen[s]=(serialSeen[s]||0)+1; });
+  out.forEach(o=>{
+    if (!o.it) return;
+    const it = o.it, iss = [];
+    if (!it.desc) iss.push(["e","No description"]);
+    if (isNaN(it.cost)) iss.push(["e","Cost missing or not a number"]);
+    else if (it.cost === 0) iss.push(["w","Cost is $0, may be an accessory in a bundle"]);
+    if (!it.acquired) iss.push(["e","Acquisition date missing"]);
+    else if (it.acquired === "invalid") iss.push(["e","Acquisition date not recognized"]);
+    if (!sub) iss.push(["e","Choose a subrecipient"]);
+    if (BANNED.test(it.desc+" "+it.make)) iss.push(["e","§889 prohibited brand"]);
+    if (it.serial && serialSeen[it.serial.toLowerCase()] > 1) iss.push(["w","Serial repeats in this file"]);
+    const dupe = it.serial && items.find(x=>x.serial && x.serial.toLowerCase()===it.serial.toLowerCase());
+    if (dupe) iss.push(["w",`Serial already on register${dupe.tag?" (tag "+dupe.tag+")":""}`]);
+    if (it.multiTag) iss.push(["i","Split from a row listing several tags"]);
+    if (it.fundText && it.funding[0].src === up.award && resolveFund(it.fundText, "__none") === "__none") iss.push(["w",`Funding "${it.fundText}" not matched, used ${srcLabel(up.award)}`]);
+    const thr = it.funding[0].src === LOCAL ? 5000 : effThreshold(award(it.funding[0].src));
+    if (!isNaN(it.cost) && it.cost < thr) iss.push(["i",`Below ${money0(thr)} threshold, will be listed as supplies`]);
+    if (!it.serial && !isNaN(it.cost) && it.cost >= thr) iss.push(["w","No serial number"]);
+    o.issues = iss;
+    o.ok = !iss.some(x=>x[0]==="e");
+    const key = "r"+o.rowNo+"-"+it.tag+"-"+it.serial;
+    o.key = key;
+    if (up.include[key] === undefined) up.include[key] = o.ok;
+  });
+  return out;
+}
+function drawPreview(){
+  const box = $("#up-prev");
+  const missing = FIELDS.filter(f=>f.req && !(up.map[f.k] >= 0));
+  if (missing.length){ box.innerHTML = `<p class="alertbox"><strong>Match a column for: ${missing.map(f=>f.label.toLowerCase()).join(", ")}.</strong></p>`; return; }
+  const out = buildRows();
+  const its = out.filter(o=>o.it), skips = out.filter(o=>o.skip);
+  const chosen = its.filter(o=>up.include[o.key]);
+  box.innerHTML = `
+    <div><h3>Check rows</h3><p class="note">${its.length} items found${skips.length?`, ${skips.length} rows skipped`:""}. Grouped purchases are split into one item per unit with the cost divided evenly. Uncheck any row you don't want.</p></div>
+    <div class="tablewrap flat"><table class="prev">
+      <thead><tr><th>Add</th><th>Row</th><th>Tag</th><th>Description</th><th>Serial</th><th class="num">Unit cost</th><th>Acquired</th><th>Funding</th><th>Location</th><th>Checks</th></tr></thead>
+      <tbody>${out.map(o=>o.skip?`<tr class="skip"><td></td><td class="mono">${o.rowNo}</td><td colspan="7" class="dim">${esc(o.raw).slice(0,120)}</td><td><div class="iss"><span class="i">Skipped: ${esc(o.skip)}</span></div></td></tr>`:
+        `<tr class="${up.include[o.key]?"":"skip"}"><td><input type="checkbox" data-inc="${esc(o.key)}" ${up.include[o.key]?"checked":""} ${o.ok?"":"disabled"} aria-label="Add row ${o.rowNo}"></td>
+          <td class="mono">${o.rowNo}</td><td>${o.it.tag?`<span class="assettag">${esc(o.it.tag)}</span>`:'<span class="notag">none</span>'}</td>
+          <td>${esc(o.it.desc)}<div class="dim">${esc(o.it.group)}</div></td><td class="mono">${esc(o.it.serial)||"—"}</td><td class="num">${money(o.it.cost)}</td>
+          <td>${o.it.acquired && o.it.acquired!=="invalid"?fmt(parse(o.it.acquired)):"—"}</td><td>${esc(srcLabel(o.it.funding[0].src))}</td><td>${esc(o.it.location)||"—"}</td>
+          <td><div class="iss">${o.issues.length?o.issues.map(([l,m])=>`<span class="${l}">${l==="e"?"Error: ":l==="w"?"Check: ":""}${esc(m)}</span>`).join(""):'<span class="i">No issues</span>'}</div></td></tr>`).join("")}</tbody>
+    </table></div>
+    <div class="btns"><button class="btn" id="up-go" ${chosen.length?"":"disabled"}>Add ${chosen.length} item${chosen.length===1?"":"s"} to the register</button></div>`;
+  box.querySelectorAll("[data-inc]").forEach(cb=>cb.onchange = ()=>{ up.include[cb.dataset.inc] = cb.checked; drawPreview(); });
+  $("#up-go").onclick = ()=>{
+    chosen.forEach(o=>{ const it = {...o.it}; delete it.fundText; delete it.rowNo; delete it.multiTag;
+      items.push(Object.assign(it, {id:nextId++, basis:"", ndaaOk:false, disp:null, archived:null, intangible:it.cat==="Software"})); });
+    const n = chosen.length; const subName = chosen[0]?.it.sub;
+    up = null; uploadOpen = false; filter = {q:"",grant:"all",sub:subName||"all",status:"active",flag:""};
+    renderRegister(); toast(`Added ${n} item${n===1?"":"s"} from the upload`);
+  };
+}
+
+/* ---------- equipment review (Monitoring Guide Section III) ---------- */
+const STEPS = [
+  "Refer to the contract documents to determine if equipment was budgeted and purchased.",
+  "Inquire of management or otherwise determine if the State paid for equipment from prior grants.",
+  "Review the accounting reports for the funded programs to determine if any equipment was charged to the State."
+];
+const ATTRS = [ {k:"tag", label:"Tag on item"}, {k:"serial", label:"Serial matches"}, {k:"loc", label:"Location matches"}, {k:"cond", label:"Condition"}, {k:"appr", label:"Prior approval"}, {k:"n889", label:"§889 brand"} ];
+const reviews = {};
+let revSub = "";
+function mulberry32(a){ return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function getReview(sub){
+  if (!reviews[sub]) reviews[sub] = { contract:"", date:iso(TODAY), initials:"", steps:STEPS.map(()=>({ans:"", init:"", wp:""})), invReceived:false, invDate:"", size:"", seed:String(1000+Math.floor(Math.random()*9000)), sample:[], tests:{}, conclusions:"" };
+  return reviews[sub];
+}
+const prefill = it => ({ appr: it.approval ? "Pass" : "Exception", n889: ndaaState(it)==="ndaa" ? "Exception" : (ndaaState(it)==="ndaaCheck" ? "" : "Pass") });
+function reviewExceptions(r){
+  const ex = [];
+  r.sample.map(id=>items.find(i=>i.id===id)).filter(Boolean).forEach(it=>{ const t = r.tests[it.id]||{}; ATTRS.forEach(a=>{ if (t[a.k]==="Exception") ex.push(`${it.tag?"Tag "+it.tag:it.desc} (${it.serial||"no serial"}): ${a.label.toLowerCase()}`); }); });
+  return ex;
+}
+function summaryText(sub, r, pop){
+  const sampled = r.sample.map(id=>items.find(i=>i.id===id)).filter(Boolean);
+  const ex = reviewExceptions(r);
+  const untested = sampled.filter(it=>ATTRS.some(a=>!(r.tests[it.id]||{})[a.k])).length;
+  return [
+    `Subrecipient: ${sub}${r.contract?" · Contract "+r.contract:""} · Review date ${fmt(parse(r.date))}${r.initials?" · "+r.initials:""}`,
+    `Inventory: ${r.invReceived?"obtained"+(r.invDate?" "+fmt(parse(r.invDate)):""):"not yet obtained"}. ${pop.length} equipment items on record.`,
+    sampled.length ? `Sample: ${sampled.length} of ${pop.length} items chosen by random draw (seed ${r.seed}).` : `Sample: not yet drawn.`,
+    `Attributes tested: ${ATTRS.map(a=>a.label.toLowerCase()).join(", ")}, plus photo/WP reference.`,
+    ex.length ? `Exceptions (${ex.length}):\n- ${ex.join("\n- ")}` : (sampled.length && !untested ? "Exceptions: none." : ""),
+    untested ? `${untested} sampled item${untested>1?"s":""} not fully tested yet.` : ""
+  ].filter(Boolean).join("\n");
+}
+function renderReview(){
+  const v = $("#view-review"), list = subs();
+  const eqCount = s => items.filter(i=>i.sub===s && status(i).key==="equipment").length;
+  if (!revSub || !list.includes(revSub)) revSub = [...list].sort((a,b)=>eqCount(b)-eqCount(a))[0];
+  if (!revSub){ v.innerHTML = `<div class="panel"><p class="note">Add equipment first.</p></div>`; return; }
+  const r = getReview(revSub);
+  const pop = items.filter(i=>i.sub===revSub && status(i).key==="equipment");
+  const anyYes = r.steps.some(s=>s.ans==="Yes");
+  const sampled = r.sample.map(id=>items.find(i=>i.id===id)).filter(Boolean);
+  const defSize = Math.min(5, pop.length);
+  const opt = (val, cur) => `<option ${cur===val?"selected":""} value="${val}">${val||"—"}</option>`;
+  v.innerHTML = `
+    <div class="panel"><div class="revhead">
+      <div class="field"><label for="rv-sub">Subrecipient</label><select id="rv-sub">${list.map(s=>`<option value="${esc(s)}" ${s===revSub?"selected":""}>${esc(s)} (${eqCount(s)})</option>`).join("")}</select></div>
+      <div class="field"><label for="rv-contract">Contract number</label><input id="rv-contract" value="${esc(r.contract)}" placeholder="34101-…"></div>
+      <div class="field"><label for="rv-date">Review date</label><input type="date" id="rv-date" value="${esc(r.date)}"></div>
+      <div class="field"><label for="rv-init">Reviewer initials</label><input id="rv-init" value="${esc(r.initials)}" maxlength="5"></div>
+    </div></div>
+    <div class="panel">
+      <div><h3>III. Equipment &amp; Real Property Management</h3><p class="note">Objective: determine whether the subrecipient's policies and procedures for purchasing equipment are adequate and consistent with the State agency's guidelines.</p></div>
+      <div class="tablewrap flat"><table class="steps"><thead><tr><th>Step</th><th>Answer</th><th>Initials</th><th>WP reference</th></tr></thead>
+        <tbody>${STEPS.map((s,n)=>`<tr><td><strong>${n+1}.</strong> ${esc(s)}</td>
+          <td><select id="st-${n}-ans" data-step="${n}" data-k="ans" aria-label="Answer to step ${n+1}">${opt("",r.steps[n].ans)}${opt("Yes",r.steps[n].ans)}${opt("No",r.steps[n].ans)}${opt("N/A",r.steps[n].ans)}</select></td>
+          <td><input id="st-${n}-init" data-step="${n}" data-k="init" value="${esc(r.steps[n].init)}" maxlength="5" aria-label="Initials for step ${n+1}"></td>
+          <td><input id="st-${n}-wp" data-step="${n}" data-k="wp" value="${esc(r.steps[n].wp)}" placeholder="WP-III-${n+1}" aria-label="WP reference for step ${n+1}"></td></tr>`).join("")}</tbody></table></div>
+      <p class="eff">${anyYes?"At least one answer is yes, so complete tests a–c below.":"If the answer to 1, 2 or 3 is yes, complete tests a–c below."}</p>
+    </div>
+    <div class="panel"><h3>a. Obtain a copy of the equipment inventory</h3><div class="revhead">
+      <label class="check"><input type="checkbox" id="rv-inv" ${r.invReceived?"checked":""}> Inventory received</label>
+      <div class="field"><label for="rv-invdate">Date received</label><input type="date" id="rv-invdate" value="${esc(r.invDate)}"></div>
+      <div class="field"><span class="lbl">On record</span><span><strong>${pop.length}</strong> equipment items · ${money0(pop.reduce((a,i)=>a+i.cost,0))}</span></div>
+      <button class="btn ghost" id="rv-list">View in register</button></div></div>
+    <div class="panel"><h3>b. Select a sample of items to test</h3><div class="revhead">
+      <div class="field"><label for="rv-size">Sample size</label><input type="number" id="rv-size" min="1" max="${pop.length}" value="${esc(r.size||defSize)}"></div>
+      <div class="field"><label for="rv-seed">Seed</label><input id="rv-seed" value="${esc(r.seed)}" inputmode="numeric"></div>
+      <button class="btn" id="rv-draw" ${pop.length?"":"disabled"}>${sampled.length?"Redraw sample":"Draw sample"}</button></div>
+      <p class="note">The seed makes the draw repeatable: the same seed and population give the same sample, so the selection method can be documented and re-performed.</p></div>
+    <div class="panel"><h3>c. Test each sampled item</h3>
+      ${sampled.length?`<div class="tablewrap flat"><table class="tests"><thead><tr><th>Item</th>${ATTRS.map(a=>`<th>${a.label}${a.k==="n889"?tip(TIP889):a.k==="appr"?tip(TIPD20):""}</th>`).join("")}<th>Photo / WP</th></tr></thead>
+        <tbody>${sampled.map(it=>{ const t = r.tests[it.id] || (r.tests[it.id] = {...prefill(it)}); return `<tr>
+          <td><div>${it.tag?`<span class="assettag">${esc(it.tag)}</span> `:`<span class="notag">no tag</span> `}<button class="linkbtn" data-open="${it.id}">${esc(it.desc)}</button></div><div class="dim mono">${esc(it.serial)||"no serial"} · ${esc(it.location)}</div></td>
+          ${ATTRS.map(a=>`<td><select class="tsel ${t[a.k]==="Exception"?"bad":t[a.k]==="Pass"?"good":""}" id="t-${it.id}-${a.k}" data-item="${it.id}" data-attr="${a.k}" aria-label="${esc(a.label)} for ${esc(it.desc)}">${opt("",t[a.k])}${opt("Pass",t[a.k])}${opt("Exception",t[a.k])}${opt("N/A",t[a.k])}</select></td>`).join("")}
+          <td><input id="t-${it.id}-wp" data-item="${it.id}" data-attr="wp" value="${esc(t.wp||"")}" placeholder="Photo #" aria-label="Photo or WP reference for ${esc(it.desc)}"></td></tr>`;}).join("")}</tbody></table></div>
+      <p class="note">Prior approval and §889 are filled in from the property record. Change them if what you see on site differs.</p>`
+      :`<p class="note">${pop.length?"Draw a sample in step b to start testing.":"This subrecipient has no items at or above the equipment threshold, so there is nothing to sample."}</p>`}</div>
+    <div class="panel"><h3>Summary of Equipment and Property test work</h3>
+      <div class="field"><label for="rv-testing">Testing</label><textarea id="rv-testing" rows="7" readonly>${esc(summaryText(revSub, r, pop))}</textarea></div>
+      <div class="field"><label for="rv-concl">Conclusions</label><textarea id="rv-concl" rows="3" placeholder="e.g. No exceptions noted. / Exceptions noted, see findings.">${esc(r.conclusions)}</textarea></div>
+      <div class="btns"><button class="btn" id="rv-copy">Copy summary</button></div></div>`;
+  $("#rv-sub").onchange = e=>{ revSub = e.target.value; renderReview(); };
+  [["rv-contract","contract"],["rv-date","date"],["rv-init","initials"],["rv-invdate","invDate"],["rv-concl","conclusions"]].forEach(([id,k])=>$("#"+id).addEventListener("change",e=>{ r[k]=e.target.value; if(k!=="conclusions") renderReview(); }));
+  $("#rv-inv").onchange = e=>{ r.invReceived = e.target.checked; if (r.invReceived && !r.invDate) r.invDate = iso(TODAY); renderReview(); };
+  v.querySelectorAll("[data-step]").forEach(el=>el.addEventListener("change",()=>{ r.steps[+el.dataset.step][el.dataset.k] = el.value; renderReview(); }));
+  $("#rv-list").onclick = ()=>{ filter={q:"",grant:"all",sub:revSub,status:"equipment",flag:""}; show("register"); };
+  $("#rv-draw").onclick = ()=>{
+    const n = Math.max(1, Math.min(pop.length, parseInt($("#rv-size").value)||defSize));
+    const seed = parseInt(String($("#rv-seed").value).replace(/\D/g,"")) || 1;
+    const rnd = mulberry32(seed), pool = pop.map(i=>i.id).sort((a,b)=>a-b);
+    for (let i=pool.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    r.size = String(n); r.seed = String(seed); r.sample = pool.slice(0,n); r.tests = {};
+    renderReview(); toast(`Sample of ${n} drawn`);
+  };
+  v.querySelectorAll("[data-item]").forEach(el=>el.addEventListener("change",()=>{ (r.tests[+el.dataset.item] ||= {})[el.dataset.attr] = el.value; renderReview(); }));
+  v.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openItem(+b.dataset.open));
+  $("#rv-copy").onclick = ()=>copyText($("#rv-testing").value + "\n\nConclusions: " + ($("#rv-concl").value || "—"), $("#rv-testing"));
+}
+
+/* ---------- reports ---------- */
+let rep = { mode:"grant", key:"", asOf:iso(TODAY), by:"" };
+function lastReviewFor(subList){
+  const d = subList.map(s=>reviews[s]).filter(r=>r && r.sample.length).map(r=>r.date).sort();
+  return d.length ? d[d.length-1] : "";
+}
+function buildReport(){
+  const asOf = parse(rep.asOf) || TODAY;
+  const byGrant = rep.mode === "grant";
+  const g = byGrant ? award(rep.key) : null;
+  const all = items.filter(i => byGrant ? fundsAward(i, rep.key) : i.sub === rep.key);
+  const eq = all.filter(i=>status(i).key==="equipment");
+  const share = i => byGrant ? i.funding.filter(l=>l.src===rep.key).reduce((t,l)=>t+(+l.amt||0),0) : fedAmt(i);
+  const pctOf = i => i.cost ? share(i)/i.cost : 0;
+  const bookAll = eq.reduce((s,i)=>s+depreciation(i,asOf).book,0);
+  const fedBook = eq.reduce((s,i)=>s+depreciation(i,asOf).book*pctOf(i),0);
+  const recOK = i => !!(i.desc && i.serial && i.title && i.acquired && i.cost && i.condition && i.location && !/split|other|\*/i.test(i.location) && Math.abs(fundTotal(i)-i.cost)<=0.01 && !fedAwardIds(i).some(id=>!award(id).fain));
+  const disposed = all.filter(i=>i.disp?.date);
+  const checks = [
+    {label:"Property record fields complete", ref:"2 CFR 200.313(d)(1)", pass:eq.filter(recOK).length, total:eq.length},
+    {label:"Physical inventory within 2 years", ref:"2 CFR 200.313(d)(2)", pass:eq.filter(i=>{const s=inventory(i,asOf).state; return s==="ok"||s==="soon";}).length, total:eq.length},
+    {label:"State prior approval on file", ref:"Contract D.20", pass:eq.filter(i=>i.approval).length, total:eq.length, tip:TIPD20},
+    {label:"No §889 prohibited brands", ref:"NDAA §889 · 2 CFR 200.216", pass:all.filter(i=>!i.archived && ndaaState(i)!=="ndaa").length, total:all.filter(i=>!i.archived).length, note:`${all.filter(i=>!i.archived && ndaaState(i)==="ndaaCheck").length} camera or telecom items still to verify`, tip:TIP889},
+    {label:"Dispositions fully recorded", ref:"2 CFR 200.313(e)", pass:disposed.filter(i=>i.disp.date && i.disp.method && (i.disp.fmv!==""||i.disp.price!=="")).length, total:disposed.length},
+    {label:"Shared costs have an allocation basis", ref:"2 CFR 200.405(d)", pass:eq.filter(i=>fedAwardIds(i).length<2 || i.basis.trim()).length, total:eq.length}
+  ];
+  const exceptions = [];
+  all.forEach(i=>flags(i,asOf).filter(k=>k!=="ndaaCheck").forEach(k=>exceptions.push({i, k})));
+  const subsIn = [...new Set(all.map(i=>i.sub))];
+  const revs = subsIn.map(s=>({s, r:reviews[s]})).filter(x=>x.r && x.r.sample.length);
+  const title = byGrant ? `${srcLabel(rep.key)} · Equipment compliance record` : `${rep.key} · Equipment compliance record`;
+  const header = byGrant
+    ? (rep.key===LOCAL ? [["Funding","Local / State (non-federal)"]] : [["Program",PROGRAMS[g.program]?.name||g.program],["Award",awardLabel(g)],["FAIN",g.fain||"Not on file"],["Program federal share",g.fedShare+"%"],["Equipment threshold",money0(effThreshold(g))+" per unit"],["Status",g.archived?`Archived ${fmt(new Date(g.archived.at))} by ${g.archived.by}`:"Active"],["Subrecipients",subsIn.join(", ")||"—"]])
+    : [["Subrecipient",rep.key],["Grants",[...new Set(all.flatMap(i=>i.funding.map(l=>srcLabel(l.src))))].join(", ")||"—"],["Contract numbers",reviews[rep.key]?.contract||"—"],["Last monitoring review",fmt(parse(lastReviewFor([rep.key])))]];
+  return {asOf, byGrant, all, eq, share, pctOf, bookAll, fedBook, checks, exceptions, disposed, revs, title, header, below:all.filter(i=>status(i).key==="below").length, archived:all.filter(i=>i.archived)};
+}
+function renderReports(){
+  const v = $("#view-reports");
+  const opts = rep.mode==="grant" ? [...AWARDS.map(a=>[a.id, awardLabel(a)+(a.archived?" (archived)":"")]), [LOCAL,"Local / State funds"]] : subs().map(s=>[s,s]);
+  if (!opts.some(o=>o[0]===rep.key)) rep.key = opts[0]?.[0] || "";
+  const R = buildReport();
+  const rows = R.all;
+  v.innerHTML = `
+    <div class="panel noprint"><div class="revhead">
+      <div class="field"><label for="rp-mode">Report by</label><select id="rp-mode"><option value="grant" ${rep.mode==="grant"?"selected":""}>Grant</option><option value="sub" ${rep.mode==="sub"?"selected":""}>Subrecipient</option></select></div>
+      <div class="field"><label for="rp-key">${rep.mode==="grant"?"Grant":"Subrecipient"}</label><select id="rp-key">${opts.map(([k,l])=>`<option value="${esc(k)}" ${k===rep.key?"selected":""}>${esc(l)}</option>`).join("")}</select></div>
+      <div class="field"><label for="rp-asof">As of</label><input type="date" id="rp-asof" value="${esc(rep.asOf)}"></div>
+      <div class="field"><label for="rp-by">Prepared by</label><input id="rp-by" value="${esc(rep.by)}"></div>
+    </div>
+    <div class="btns"><button class="btn" id="rp-copy">Copy report</button><button class="btn ghost" id="rp-csv">Export items (CSV)</button><button class="btn ghost" id="rp-print">Print</button></div>
+    <p class="note">Export and Print work on the GitHub version of this page.</p></div>
+    <article class="report" id="report">
+      <div><h2>${esc(R.title)}</h2><p class="note">As of ${fmt(R.asOf)}${rep.by?" · Prepared by "+esc(rep.by):""} · Generated ${fmt(TODAY)}</p></div>
+      <dl class="kv">${R.header.map(([k,val])=>`<dt>${esc(k)}</dt><dd>${esc(val)}</dd>`).join("")}</dl>
+      <section><h3>Summary</h3><div class="rgrid">
+        <div><span class="lbl">Equipment items</span><div class="v">${R.eq.length}</div></div>
+        <div><span class="lbl">${R.byGrant?"Grant's share of cost":"Acquisition cost"}</span><div class="v">${money0(R.eq.reduce((s,i)=>s+(R.byGrant?R.share(i):i.cost),0))}</div></div>
+        <div><span class="lbl">${R.byGrant?"Book value · this grant's share":"Book value · federal share"}</span><div class="v">${money0(R.fedBook)}</div></div>
+        <div><span class="lbl">Items with gaps</span><div class="v" style="color:var(--crit)">${R.eq.filter(i=>flags(i,R.asOf).length).length}</div></div>
+        <div><span class="lbl">Disposed</span><div class="v">${R.disposed.length}</div></div>
+        <div><span class="lbl">Archived</span><div class="v">${R.archived.length}</div></div>
+        <div><span class="lbl">Below threshold</span><div class="v">${R.below}</div></div>
+        <div><span class="lbl">Total book value</span><div class="v">${money0(R.bookAll)}</div></div>
+      </div></section>
+      <section><h3>Compliance checks</h3><div class="tablewrap flat"><table class="chk"><thead><tr><th>Check</th><th>Rule</th><th class="num">Pass</th><th class="num">Exceptions</th><th>Result</th></tr></thead>
+        <tbody>${R.checks.map(c=>`<tr><td>${esc(c.label)}${c.tip?tip(c.tip):""}${c.note?`<div class="dim">${esc(c.note)}</div>`:""}</td><td class="mono">${esc(c.ref)}</td><td class="num">${c.pass} of ${c.total}</td><td class="num">${c.total-c.pass}</td><td>${!c.total?'<span class="dim">Not applicable</span>':c.pass===c.total?'<span class="ok">Met</span>':'<span class="bad">Exceptions</span>'}</td></tr>`).join("")}</tbody></table></div></section>
+      <section><h3>Exceptions</h3>${R.exceptions.length?`<div class="tablewrap flat"><table class="chk"><thead><tr><th>Item</th><th>Serial</th><th>Issue</th><th>Rule</th></tr></thead><tbody>${R.exceptions.map(({i,k})=>`<tr><td>${i.tag?`<span class="assettag">${esc(i.tag)}</span> `:""}${esc(i.desc)}<div class="dim">${esc(i.sub)}</div></td><td class="mono">${esc(i.serial)||"—"}</td><td>${esc(FLAG_DEFS[k].label)}</td><td class="mono">${esc(FLAG_DEFS[k].ref||"—")}</td></tr>`).join("")}</tbody></table></div>`:`<p class="note">No exceptions.</p>`}</section>
+      <section><h3>Monitoring review results</h3>${R.revs.length?R.revs.map(({s,r})=>{const pop=items.filter(i=>i.sub===s&&status(i).key==="equipment"); const ex=reviewExceptions(r); return `<dl class="kv"><dt>Subrecipient</dt><dd>${esc(s)}${r.contract?" · Contract "+esc(r.contract):""}</dd><dt>Review date</dt><dd>${fmt(parse(r.date))}${r.initials?" · "+esc(r.initials):""}</dd><dt>Sample</dt><dd>${r.sample.length} of ${pop.length} items, seed ${esc(r.seed)}</dd><dt>Exceptions</dt><dd>${ex.length?ex.map(esc).join("<br>"):"None recorded"}</dd><dt>Conclusions</dt><dd>${esc(r.conclusions)||"—"}</dd></dl>`;}).join("<hr>"):`<p class="note">No Section III review recorded for ${R.byGrant?"these subrecipients":"this subrecipient"} yet.</p>`}</section>
+      <section><h3>Item listing</h3><div class="tablewrap flat"><table class="rlist"><thead><tr><th>Tag</th><th>Description</th><th>Serial</th><th>Funding (FAIN)</th><th>Title holder</th><th>Acquired</th><th class="num">Unit cost</th><th class="num">${R.byGrant?"This grant":"Federal %"}</th><th>Location</th><th>Condition</th><th>Last inventory</th><th>Prior approval</th><th>Status</th></tr></thead>
+        <tbody>${rows.map(i=>`<tr><td>${esc(i.tag)||"—"}</td><td>${esc(i.desc)}${R.byGrant&&i.funding.length>1?`<div class="dim">Shared with ${esc(i.funding.filter(l=>l.src!==rep.key).map(l=>srcLabel(l.src)).join(", "))}</div>`:""}</td><td class="mono">${esc(i.serial)||"—"}</td><td>${i.funding.map(l=>`${esc(srcLabel(l.src))}${l.src!==LOCAL?` (${esc(award(l.src).fain||"no FAIN")})`:""}`).join("<br>")}</td><td>${esc(i.title)||"—"}</td><td>${fmt(parse(i.acquired))}</td><td class="num">${money(i.cost)}</td><td class="num">${R.byGrant?money(R.share(i)):pct(fedPct(i))}</td><td>${esc(i.location)||"—"}</td><td>${esc(i.condition)||"—"}</td><td>${fmt(parse(i.lastInv))}</td><td>${fmt(parse(i.approval))}</td><td>${status(i).label}</td></tr>`).join("")||`<tr><td colspan="13" class="dim">No items.</td></tr>`}</tbody></table></div></section>
+      <section><h3>Dispositions</h3>${R.disposed.length?`<div class="tablewrap flat"><table class="chk"><thead><tr><th>Item</th><th>Date</th><th>Method</th><th class="num">FMV</th><th class="num">Sale price</th><th class="num">Federal share owed</th></tr></thead><tbody>${R.disposed.map(i=>`<tr><td>${esc(i.desc)}</td><td>${fmt(parse(i.disp.date))}</td><td>${esc(i.disp.method)}</td><td class="num">${money(i.disp.fmv)}</td><td class="num">${money(i.disp.price)}</td><td class="num">${money(owedFor(i).filter(o=>!R.byGrant||o.id===rep.key).reduce((s,o)=>s+o.owed,0))}</td></tr>`).join("")}</tbody></table></div>`:`<p class="note">No dispositions recorded.</p>`}</section>
+      ${R.archived.length?`<section><h3>Archived items</h3><ul class="log">${R.archived.map(i=>`<li><span>${esc(i.desc)} <span class="dim mono">${esc(i.serial)}</span></span><span class="dim">Archived ${fmt(new Date(i.archived.at))} by ${esc(i.archived.by)} · keep records 3 years after final disposition (2 CFR 200.334(c))</span></li>`).join("")}</ul></section>`:""}
+    </article>`;
+  $("#rp-mode").onchange = e=>{ rep.mode = e.target.value; rep.key = ""; renderReports(); };
+  $("#rp-key").onchange = e=>{ rep.key = e.target.value; renderReports(); };
+  $("#rp-asof").onchange = e=>{ rep.asOf = e.target.value || iso(TODAY); renderReports(); };
+  $("#rp-by").onchange = e=>{ rep.by = e.target.value; renderReports(); };
+  $("#rp-copy").onclick = ()=>copyText($("#report").innerText);
+  $("#rp-print").onclick = ()=>{ try { window.print(); } catch(e){} };
+  $("#rp-csv").onclick = ()=>{
+    const head = ["Tag","Description","Manufacturer","Serial","Subrecipient","Funding","FAINs","Title holder","Acquired","Unit cost", R.byGrant?"This grant's amount":"Federal amount","Federal %","Location","Condition","Last inventory","Prior approval","Status","Gaps"];
+    const q = s => `"${String(s??"").replace(/"/g,'""')}"`;
+    const lines = [head.map(q).join(",")].concat(rows.map(i=>[i.tag,i.desc,i.make,i.serial,i.sub,i.funding.map(l=>srcLabel(l.src)+" "+l.amt).join("; "),fedAwardIds(i).map(id=>award(id).fain||"none").join("; "),i.title,i.acquired,i.cost,R.byGrant?R.share(i):fedAmt(i),round2(fedPct(i)),i.location,i.condition,i.lastInv,i.approval,status(i).label,flags(i,R.asOf).map(k=>FLAG_DEFS[k].label).join("; ")].map(q).join(",")));
+    try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv"})); a.download = `compliance-${(rep.key||"report").replace(/\W+/g,"-")}-${rep.asOf}.csv`; document.body.appendChild(a); a.click(); a.remove(); toast("CSV exported"); }
+    catch(e){ toast("Downloads are blocked here. Use the GitHub version."); }
+  };
+}
+
+/* ---------- map ---------- */
+const TN = [[-90.31,35.00],[-88.20,34.995],[-85.61,34.98],[-84.32,34.99],[-84.29,35.22],[-84.03,35.29],[-83.95,35.46],[-83.67,35.57],[-83.25,35.70],[-82.96,35.80],[-82.61,35.97],[-82.40,36.08],[-82.22,36.15],[-82.03,36.12],[-81.93,36.29],[-81.71,36.33],[-81.68,36.59],[-83.68,36.60],[-86.50,36.65],[-88.07,36.68],[-88.07,36.50],[-89.42,36.50],[-89.60,36.20],[-89.70,35.95],[-89.95,35.70],[-90.07,35.40],[-90.05,35.15]];
+let mapView = "fit", selSite = null;
+function renderMap(){
+  const v = $("#view-map");
+  const live = items.filter(i => !["disposed","archived"].includes(status(i).key) && !i.intangible);
+  const bySite = {};
+  live.forEach(i => { if (i.site && SITES[i.site]) (bySite[i.site] = bySite[i.site] || []).push(i); });
+  const unmapped = live.filter(i => !i.site || !SITES[i.site]);
+  const W = 800, H = 520, K = Math.cos(36*Math.PI/180);
+  let pts = mapView === "state" ? TN.map(([lon,lat])=>({lon,lat})) : Object.keys(bySite).map(k=>SITES[k]);
+  if (!pts.length) pts = TN.map(([lon,lat])=>({lon,lat}));
+  let minX = Math.min(...pts.map(p=>p.lon*K)), maxX = Math.max(...pts.map(p=>p.lon*K));
+  let minY = Math.min(...pts.map(p=>-p.lat)), maxY = Math.max(...pts.map(p=>-p.lat));
+  const pad = mapView === "state" ? 0.15 : 0.22;
+  minX-=pad; maxX+=pad; minY-=pad; maxY+=pad;
+  const s = Math.min(W/(maxX-minX), H/(maxY-minY));
+  const ox = (W - (maxX-minX)*s)/2, oy = (H - (maxY-minY)*s)/2;
+  const P = (lon,lat) => [ox + (lon*K - minX)*s, oy + (-lat - minY)*s];
+  const outline = "M" + TN.map(([lo,la])=>P(lo,la).map(n=>n.toFixed(1)).join(",")).join("L") + "Z";
+  const showLabels = mapView !== "state";
+  const markers = Object.entries(bySite).map(([k,list])=>{
+    const [x,y] = P(SITES[k].lon, SITES[k].lat);
+    const gaps = list.some(i=>flags(i).length);
+    const r = 11 + Math.min(8, list.length*1.5);
+    return `<g class="site${selSite===k?" sel":""}" data-site="${k}" tabindex="0" role="button" aria-label="${esc(SITES[k].name)}: ${list.length} items${gaps?", has record gaps":""}">
+      ${selSite===k?`<circle class="ring" cx="${x}" cy="${y}" r="${r+5}"></circle>`:""}
+      <circle class="dot" cx="${x}" cy="${y}" r="${r}" fill="${gaps?"var(--crit)":"var(--navy)"}"></circle>
+      <text class="n" x="${x}" y="${y+4}" text-anchor="middle">${list.length}</text>
+      ${showLabels?`<text x="${x+r+6}" y="${y+4}">${esc(SITES[k].name)}</text>`:""}</g>`;
+  }).join("");
+  const sel = selSite && bySite[selSite];
+  v.innerHTML = `<div class="mapgrid">
+      <div class="mapbox">
+        <div class="maptools">
+          <div class="legend"><span><i style="background:var(--navy)"></i>All records complete</span><span><i style="background:var(--crit)"></i>Has record gaps</span><span>Number = items at site</span></div>
+          <div class="seg" role="group" aria-label="Map extent"><button id="mv-fit" aria-pressed="${mapView==="fit"}">Fit to items</button><button id="mv-state" aria-pressed="${mapView==="state"}">Statewide</button></div>
+        </div>
+        <svg class="map" viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of equipment locations in Tennessee"><path class="state" d="${outline}"></path>${markers}</svg>
+        <p class="note">Simplified state outline with markers at approximate city locations. The production version would use an ArcGIS map widget in Experience Builder, reading the same equipment layer as the app.</p>
+      </div>
+      <div class="panel">
+        ${sel ? `<div><h2>${esc(SITES[selSite].name)}</h2><p class="note">${esc(SITES[selSite].county)} · ${sel.length} item${sel.length>1?"s":""} · ${money0(sel.reduce((a,i)=>a+i.cost,0))} acquisition cost</p></div>
+          <ul class="sitelist">${sel.map(i=>{const fl=flags(i);return `<li tabindex="0" data-id="${i.id}"><span><span class="desc">${esc(i.desc)}</span><div class="dim">${esc(i.location)}</div></span><span>${fl.length?`<span class="pill p-crit">${fl.length} gap${fl.length>1?"s":""}</span>`:`<span class="pill p-ok">Complete</span>`}</span></li>`}).join("")}</ul>`
+        : `<h3>Sites</h3><p class="note">Select a marker to see what is held there.</p>
+          <ul class="sitelist">${Object.entries(bySite).map(([k,l])=>`<li tabindex="0" data-pick="${k}"><span>${esc(SITES[k].name)} <span class="dim">${esc(SITES[k].county)}</span></span><span class="count">${l.length}</span></li>`).join("")}</ul>`}
+        ${unmapped.length?`<div class="eff"><strong>${unmapped.length} item${unmapped.length>1?"s":""} not mapped</strong> because the location is split or missing: ${unmapped.slice(0,6).map(i=>esc(i.desc)).join("; ")}${unmapped.length>6?"; …":""}.</div>`:""}
+        ${sel?`<button class="btn ghost" id="site-clear">Show all sites</button>`:""}
+      </div></div>`;
+  $("#mv-fit").onclick = ()=>{ mapView="fit"; renderMap(); };
+  $("#mv-state").onclick = ()=>{ mapView="state"; renderMap(); };
+  v.querySelectorAll("g.site, [data-pick]").forEach(g=>{ const pick = ()=>{ selSite = g.dataset.site || g.dataset.pick; renderMap(); }; g.onclick = pick; g.onkeydown = e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(); } }; });
+  v.querySelectorAll(".sitelist li[data-id]").forEach(li=>{ li.onclick = ()=>openItem(+li.dataset.id); li.onkeydown = e=>{ if(e.key==="Enter") openItem(+li.dataset.id); }; });
+  const c = $("#site-clear"); if (c) c.onclick = ()=>{ selSite=null; renderMap(); };
+}
+
+/* ---------- grant rules ---------- */
+let showAdd = false;
+function grantInventory(id){
+  const its = items.filter(i=>fundsAward(i,id) && status(i).key==="equipment");
+  const dated = its.filter(i=>i.lastInv).map(i=>i.lastInv).sort();
+  const due = its.filter(i=>{ const s = inventory(i).state; return s==="none"||s==="overdue"; }).length;
+  return { n:its.length, oldest:dated[0]||"", due };
+}
+function renderRules(){
+  const v = $("#view-rules");
+  const live = activeAwards(), gone = AWARDS.filter(a=>a.archived);
+  const used = id => items.filter(i=>fundsAward(i,id)).length;
+  v.innerHTML = `
+    <div><h2>Rules by program</h2><p class="note">These apply to every award in the program. Award-specific values go in the award cards below.</p></div>
+    <div class="panel prog"><h3>All programs · federal and State rules</h3>
+      <ul>${COMMON_RULES.map(([t,s])=>`<li>${esc(t)}${/889/.test(s)?tip(TIP889):/D\.20/.test(s)?tip(TIPD20):""} <span class="src">${esc(s)}</span></li>`).join("")}</ul></div>
+    <div class="programs">${Object.entries(PROGRAMS).map(([k,p])=>`<div class="panel prog"><h3>${esc(p.short)}</h3><h2 style="font-size:1.05rem">${esc(p.name)}</h2><ul>${p.notes.map(([t,s])=>`<li>${esc(t)} <span class="src">${esc(s)}</span></li>`).join("")}</ul></div>`).join("")}</div>
+    <div class="rulehead">
+      <div><h2>Grants</h2><p class="note">Changing a value updates every item's status, record gaps and book value. Changes last until the page reloads. To keep them, copy the award list into the AWARDS block at the top of index.html.</p></div>
+      <div class="btns"><button class="btn" id="add-toggle">${showAdd?"Cancel":"Add grant"}</button><button class="btn ghost" id="copy-awards">Copy award list</button></div>
+    </div>
+    ${showAdd?`<form class="panel" id="add-form-g"><h3>New grant</h3><div class="addform">
+        <div class="field"><label for="n-prog">Program</label><select id="n-prog">${Object.entries(PROGRAMS).map(([k,p])=>`<option value="${k}">${esc(p.short)} · ${esc(p.name)}</option>`).join("")}</select></div>
+        <div class="field"><label for="n-fy">Fiscal year</label><input type="number" id="n-fy" value="${TODAY.getFullYear()}" min="2000" max="2100"></div>
+        <div class="field"><label for="n-label">Label (optional)</label><input id="n-label" placeholder="e.g. DR-4XXX-TN"></div>
+        <div class="field"><label for="n-fain">FAIN</label><input id="n-fain" placeholder="From the federal award"></div>
+        <div class="field"><label for="n-fed">Program federal share %</label><input type="number" id="n-fed" min="0" max="100" value="${PROGRAMS.HSGP.fedShare}"></div>
+        <div class="field"><label for="n-fth">Federal threshold</label><select id="n-fth"><option value="10000">$10,000 · on/after 10/1/2024</option><option value="5000">$5,000 · before 10/1/2024</option></select></div>
+      </div><p class="note" id="n-msg"></p><div class="btns"><button class="btn" type="submit">Add grant</button></div></form>`:""}
+    <div class="rules">${live.map(g=>{ const inv = grantInventory(g.id), lr = lastReviewFor([...new Set(items.filter(i=>fundsAward(i,g.id)).map(i=>i.sub))]); return `
+      <div class="panel rule">
+        <div class="top"><div><div class="prog-chip">${esc(PROGRAMS[g.program]?.name || g.program)}</div><h2>${esc(awardLabel(g))}</h2></div>
+          <div class="btns" style="align-items:center"><span class="dim">${used(g.id)} items</span><button class="btn danger" data-del="${esc(g.id)}">Remove</button></div></div>
+        <div class="grantmeta">
+          <div><span class="lbl">Physical inventory</span>${inv.n?`Oldest: ${inv.oldest?fmt(parse(inv.oldest)):"none recorded"}<br><span class="${inv.due?"bad":"ok"}">${inv.due?`${inv.due} of ${inv.n} need inventory`:`All ${inv.n} current`}</span>`:'<span class="dim">No equipment yet</span>'}</div>
+          <div><span class="lbl">Last monitoring review</span>${lr?fmt(parse(lr)):'<span class="dim">None recorded</span>'}</div>
+        </div>
+        <div class="grid">
+          <div class="field wide"><label for="r-${g.id}-fain">FAIN <span class="cfr">§200.313(d)(1)</span></label><input id="r-${g.id}-fain" data-g="${g.id}" data-k="fain" value="${esc(g.fain)}" placeholder="From the federal award"></div>
+          <div class="field"><label for="r-${g.id}-fy">Fiscal year</label><input type="number" id="r-${g.id}-fy" data-g="${g.id}" data-k="fy" value="${g.fy}"></div>
+          <div class="field"><label for="r-${g.id}-label">Label (optional)</label><input id="r-${g.id}-label" data-g="${g.id}" data-k="label" value="${esc(g.label)}" placeholder="e.g. DR-4XXX-TN"></div>
+          <div class="field"><label for="r-${g.id}-fed">Program federal share %</label><input type="number" min="0" max="100" id="r-${g.id}-fed" data-g="${g.id}" data-k="fedShare" value="${g.fedShare}"></div>
+          <div class="field"><label for="r-${g.id}-st">State threshold ($ per unit)</label><input type="number" min="0" step="500" id="r-${g.id}-st" data-g="${g.id}" data-k="stateThreshold" value="${g.stateThreshold}"></div>
+          <div class="field"><label for="r-${g.id}-ft">Federal threshold</label><select id="r-${g.id}-ft" data-g="${g.id}" data-k="fedThreshold"><option value="10000" ${g.fedThreshold==10000?"selected":""}>$10,000 · on/after 10/1/2024</option><option value="5000" ${g.fedThreshold==5000?"selected":""}>$5,000 · before 10/1/2024</option></select></div>
+          <div class="field"><label for="r-${g.id}-m">Depreciation method</label><select id="r-${g.id}-m" data-g="${g.id}" data-k="method"><option value="SL" ${g.method==="SL"?"selected":""}>Straight-line</option><option value="DDB" ${g.method==="DDB"?"selected":""}>Double-declining balance</option></select></div>
+          <div class="field"><label for="r-${g.id}-s">Salvage value % of cost</label><input type="number" min="0" max="100" id="r-${g.id}-s" data-g="${g.id}" data-k="salvagePct" value="${g.salvagePct}"></div>
+          <div class="eff wide">Equipment threshold in use: <strong>${money0(effThreshold(g))}</strong> per unit, the lesser of the State and federal thresholds. Disposal compensation applies above <strong>${money0(g.fedThreshold)}</strong> fair market value.</div>
+        </div></div>`;}).join("")}</div>
+    ${gone.length||LOG.length?`<div class="panel"><h3>Removed grants and log</h3>
+      <ul class="log">${gone.map(g=>`<li><span><strong>${esc(awardLabel(g))}</strong> · removed ${fmt(new Date(g.archived.at))} by ${esc(g.archived.by)} · ${g.archived.items} items archived</span><button class="btn sm ghost" data-restore="${esc(g.id)}">Restore</button></li>`).join("")}</ul>
+      ${LOG.length?`<h3 style="margin-top:8px">Activity</h3><ul class="log">${LOG.slice().reverse().map(l=>`<li><span>${esc(l.text)}</span><span class="dim">${new Date(l.at).toLocaleString("en-US")} · ${esc(l.by)}</span></li>`).join("")}</ul>`:""}</div>`:""}
+    <div class="panel">
+      <h3>Useful life by category (years)</h3>
+      <p class="note">Example values. Replace them with the State's required useful-life table and add categories as new equipment types come in. Straight-line is the default method because 2 CFR 200.436 presumes it unless there is clear evidence an asset is used up faster early in its life.</p>
+      <div class="lifegrid">${Object.entries(CATEGORIES).map(([c,y],n)=>{ const inUse = items.filter(i=>i.cat===c).length; return `<div class="lifecell"><div class="field"><label for="life-${n}">${esc(c)}</label><input type="number" min="0" id="life-${n}" data-cat="${esc(c)}" value="${y}"></div><button class="iconbtn" data-delcat="${esc(c)}" ${inUse?`disabled title="${inUse} items use this category"`:""} aria-label="Remove ${esc(c)}">×</button></div>`; }).join("")}</div>
+      <form class="addlife" id="life-add"><div class="field"><label for="life-new">New category</label><input id="life-new" placeholder="e.g. Boat / watercraft"></div><div class="field"><label for="life-newy">Useful life (years)</label><input type="number" id="life-newy" min="1" value="5"></div><button class="btn" type="submit">Add category</button></form>
+      <p class="note" id="life-msg"></p>
+    </div>
+    <div class="panel" id="code-panel" hidden><h3>Award list as code</h3><p class="note">Copied to your clipboard. If it wasn't, select all the text below and copy it. Paste it over the AWARDS block at the top of index.html, then commit.</p><textarea class="codebox" id="code-out" readonly></textarea></div>`;
+
+  v.querySelectorAll("[data-g]").forEach(el=>el.addEventListener("change",()=>{
+    const g = awardById(el.dataset.g), k = el.dataset.k;
+    g[k] = (k==="fain"||k==="method"||k==="label") ? el.value.trim() : Math.max(0, +el.value||0);
+    renderRules(); toast("Grant updated");
+  }));
+  v.querySelectorAll("[data-cat]").forEach(el=>el.addEventListener("change",()=>{ CATEGORIES[el.dataset.cat] = Math.max(0,+el.value||0); toast("Useful life updated"); }));
+  v.querySelectorAll("[data-delcat]").forEach(b=>b.onclick=()=>{ delete CATEGORIES[b.dataset.delcat]; renderRules(); toast("Category removed"); });
+  $("#life-add").onsubmit = e=>{ e.preventDefault(); const name = $("#life-new").value.trim(), yrs = +$("#life-newy").value;
+    if (!name){ $("#life-msg").textContent = "Enter a category name."; return; }
+    if (Object.keys(CATEGORIES).some(c=>c.toLowerCase()===name.toLowerCase())){ $("#life-msg").textContent = `${name} is already in the table.`; return; }
+    if (!(yrs>0)){ $("#life-msg").textContent = "Enter a useful life of at least 1 year."; return; }
+    CATEGORIES[name] = yrs; renderRules(); toast(`Added ${name}`); };
+  v.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>openRemove(b.dataset.del));
+  v.querySelectorAll("[data-restore]").forEach(b=>b.onclick=()=>{
+    const g = awardById(b.dataset.restore); const by = g.archived.by;
+    items.forEach(i=>{ if (i.archived && i.archived.grant === g.id) i.archived = null; });
+    g.archived = null; LOG.push({at:new Date().toISOString(), by, text:`Restored ${awardLabel(g)} and its archived items`}); renderRules(); toast("Grant restored"); });
+  $("#add-toggle").onclick = ()=>{ showAdd=!showAdd; renderRules(); if(showAdd) $("#n-prog").focus(); };
+  const form = $("#add-form-g");
+  if (form){
+    $("#n-prog").onchange = ()=>{ $("#n-fed").value = PROGRAMS[$("#n-prog").value].fedShare; };
+    form.onsubmit = e=>{ e.preventDefault();
+      const program = $("#n-prog").value, fy = +$("#n-fy").value, label = $("#n-label").value.trim();
+      if (!fy){ $("#n-msg").textContent = "Enter a fiscal year."; return; }
+      let id = (program + fy + (label?"-"+label:"")).replace(/[^A-Za-z0-9-]/g,"");
+      if (AWARDS.some(a=>a.id===id)) id += "-" + (AWARDS.length+1);
+      AWARDS.push({id, program, fy, label, fain:$("#n-fain").value.trim(), fedShare:Math.max(0,+$("#n-fed").value||0), stateThreshold:5000, fedThreshold:+$("#n-fth").value, method:"SL", salvagePct:0});
+      showAdd=false; renderRules(); toast("Grant added"); };
+  }
+  $("#copy-awards").onclick = ()=>{
+    const code = "let AWARDS = [\n" + AWARDS.filter(a=>!a.archived).map(a=>{ const {archived, ...rest} = a; return "  " + JSON.stringify(rest).replace(/"(\w+)":/g,"$1:"); }).join(",\n") + "\n];";
+    $("#code-panel").hidden = false; $("#code-out").value = code; copyText(code, $("#code-out"));
+  };
+}
+
+/* ---------- remove grant (modal) ---------- */
+function openRemove(id){
+  const g = awardById(id), name = awardLabel(g);
+  const tied = items.filter(i=>fundsAward(i,id) && !i.archived);
+  const only = tied.filter(i=>fedAwardIds(i).filter(x=>x!==id && !award(x).archived).length===0);
+  const shared = tied.length - only.length;
+  $("#modal-box").innerHTML = `
+    <h2 id="m-title">Remove ${esc(name)}</h2>
+    ${tied.length?`<div class="alertbox"><strong>${tied.length} item${tied.length>1?"s are":" is"} tied to this grant. Archive this equipment before removing the grant.</strong>
+      <span>Archived items leave the register, overview and map but stay searchable and in reports. Records for equipment bought with federal funds must be kept for three years after final disposition (2 CFR 200.334(c)), so nothing is deleted.</span>
+      ${shared?`<span>${shared} item${shared>1?"s are":" is"} also funded by another active grant and will stay active. This grant's share is marked archived.</span>`:""}</div>
+      <label class="check"><input type="checkbox" id="m-arch"> Archive the ${only.length} item${only.length===1?"":"s"} funded only by this grant</label>`
+      :`<p class="note">No equipment is tied to this grant.</p>`}
+    <p class="note">The grant is archived, not deleted, so archived items keep its FAIN and rules. You can restore it from the Grant rules tab.</p>
+    <div class="field"><label for="m-name">To remove this grant, type the grant name: <strong>${esc(name)}</strong></label><input id="m-name" autocomplete="off"></div>
+    <div class="field"><label for="m-by">Your name (person removing the grant)</label><input id="m-by" autocomplete="name" value="${esc(session?.username||"")}"></div>
+    <div class="btns"><button class="btn ghost" id="m-cancel">Cancel</button><button class="btn dangerfill" id="m-go" disabled>Remove grant</button></div>`;
+  $("#modal").hidden = false; $("#m-name").focus();
+  const check = ()=>{ $("#m-go").disabled = !($("#m-name").value.trim() === name && $("#m-by").value.trim() && (!tied.length || $("#m-arch").checked)); };
+  ["m-name","m-by"].forEach(i=>$("#"+i).addEventListener("input",check)); const a = $("#m-arch"); if (a) a.onchange = check;
+  $("#m-cancel").onclick = closeModal;
+  $("#m-go").onclick = ()=>{
+    const by = $("#m-by").value.trim(), at = new Date().toISOString();
+    only.forEach(i=>i.archived = {by, at, grant:id});
+    g.archived = {by, at, items:only.length};
+    LOG.push({at, by, text:`Removed ${name}; archived ${only.length} item${only.length===1?"":"s"}${shared?`, ${shared} shared item${shared>1?"s":""} kept active`:""}`});
+    closeModal(); renderRules(); toast(`${name} removed`);
+  };
+}
+function closeModal(){ $("#modal").hidden = true; }
+$("#modal").addEventListener("click", e=>{ if (e.target.id === "modal") closeModal(); });
+
+/* ---------- item record (pop-out) ---------- */
+function owedFor(it){
+  const dp = it.disp || {}; const fmv = parseFloat(dp.fmv), price = parseFloat(dp.price), sold = dp.method === "Sold";
+  const base = sold && !isNaN(price) ? price : fmv;
+  return fedAwardIds(it).map(id=>{ const a = award(id), share = it.cost ? fedAmt(it,id)/it.cost : 0;
+    return {id, label:awardLabel(a), share, threshold:a.fedThreshold, owed: (!isNaN(fmv) && fmv > a.fedThreshold && !isNaN(base)) ? round2(base*share) : 0, applies: !isNaN(fmv) && fmv > a.fedThreshold}; });
+}
+let openId = null;
+function openItem(id, focus){
+  openId = id;
+  const it = items.find(i=>i.id===id); if (!it) return;
+  const st = status(it), d = depreciation(it), inv = inventory(it), fl = flags(it);
+  const pct2 = d.lifeM ? Math.round(d.months/d.lifeM*100) : 0;
+  const dp = it.disp || {};
+  const lines = it.funding.map(l=>({...l}));
+  const canDispose = st.key !== "archived";
+  $("#drawer").innerHTML = `
+    <div class="dhead">
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+        <div class="chips">${it.tag?`<span class="assettag">${esc(it.tag)}</span>`:`<span class="notag">no tag</span>`}<span class="pill ${st.cls}">${st.label}</span></div>
+        <h2 id="d-title">${esc(it.desc)}</h2>
+      </div>
+      <button class="closebtn" id="d-close" aria-label="Close">×</button>
+    </div>
+    <nav class="actionbar" aria-label="Item actions"><span class="lbl">What you can do here</span>
+      <button class="btn sm" data-go="blk-rec">Property record</button>
+      <button class="btn sm ghost" data-go="blk-fund">Funding</button>
+      <button class="btn sm ghost" data-go="blk-appr">Approval &amp; §889</button>
+      <button class="btn sm ghost" data-go="blk-inv">Record inventory</button>
+      ${canDispose?`<button class="btn sm warnbtn" data-go="blk-disp">Dispose</button>`:""}
+    </nav>
+    <div class="dbody" id="dbody">
+      ${it.archived?`<div class="block"><div class="alertbox"><strong>Archived ${fmt(new Date(it.archived.at))} by ${esc(it.archived.by)}</strong><span>Its grant was removed. Keep this record for three years after final disposition (2 CFR 200.334(c)).</span></div></div>`:""}
+      ${fl.length?`<div class="block"><h3>Record gaps</h3><div class="flagbox">${fl.map(k=>`<div>${flagPill(k)}${FLAG_DEFS[k].label}${FLAG_DEFS[k].tip?tip(FLAG_DEFS[k].tip,"l"):""}</div>`).join("")}</div></div>`:""}
+      <div class="block" id="blk-rec"><h3>Property record <span class="cfr">§200.313(d)(1)</span></h3>
+        <dl class="kv">
+          <dt>Description</dt><dd>${esc(it.desc)}${it.group?`<div class="dim">${esc(it.group)}</div>`:""}</dd>
+          <dt>Serial / ID number</dt><dd class="mono">${esc(it.serial)||"—"}</dd>
+          <dt>Funding source</dt><dd>${it.funding.map(l=>`${esc(srcLabel(l.src))} · ${money(l.amt)}${l.src!==LOCAL?` · FAIN ${award(l.src).fain?esc(award(l.src).fain):'<span style="color:var(--crit)">not on file</span>'}`:""}`).join("<br>")}</dd>
+          <dt>Title holder</dt><dd>${esc(it.title)||'<span style="color:var(--crit)">Not recorded</span>'}</dd>
+          <dt>Acquisition date</dt><dd>${fmt(parse(it.acquired))}</dd>
+          <dt>Unit cost</dt><dd>${money(it.cost)}</dd>
+          <dt>Federal share</dt><dd>${pct(fedPct(it))} · ${money(fedAmt(it))}</dd>
+          <dt>Location</dt><dd>${esc(it.location)||"—"}</dd>
+          <dt>Use and condition</dt><dd>${esc(it.condition)||"—"}</dd>
+          <dt>Subrecipient</dt><dd>${esc(it.sub)||"—"}</dd>
+          <dt>Category</dt><dd>${esc(it.cat)}</dd>
+        </dl></div>
+      <div class="block" id="blk-fund"><h3>Funding <span class="cfr">§200.405</span></h3>
+        <p class="note">List every source that paid for this item. Use Local / State for match or other non-federal money.</p>
+        <div id="d-fund"></div>
+        <div class="field"><label for="d-basis">Allocation basis</label><input id="d-basis" value="${esc(it.basis)}" placeholder="How the cost was split (needed when more than one federal award)"></div>
+        <div class="btns"><button class="btn" id="d-fund-save">Save funding</button></div>
+      </div>
+      <div class="block" id="blk-appr"><h3>Purchase approval and §889 ${tip(TIP889,"l")}</h3>
+        <form class="dform" id="pa-form">
+          <div class="field"><label for="pa-date">State prior approval date ${tip(TIPD20,"l")}</label><input type="date" id="pa-date" value="${esc(it.approval)}"></div>
+          <div class="field"><label for="pa-make">Manufacturer</label><input id="pa-make" value="${esc(it.make)}" placeholder="Brand on the item"></div>
+          <label class="check wide"><input type="checkbox" id="pa-889" ${it.ndaaOk?"checked":""}> Brand verified as §889 compliant ${tip(TIP889,"l")}</label>
+          <p class="note wide">${ndaaState(it)==="ndaa"?'<strong style="color:var(--crit)">This brand matches a company covered by §889.</strong> Equipment from Huawei, ZTE, Hytera, Hikvision, Dahua, or their subsidiaries and affiliates cannot be bought with federal funds.':'To check a brand, search for the brand name plus "889 compliant".'}</p>
+          <div class="btns wide"><button class="btn" type="submit">Save</button></div>
+        </form>
+      </div>
+      <div class="block"><h3>Depreciation · ${d.method==="DDB"?"double-declining balance":"straight-line"}</h3>
+        ${d.lifeM?`<div class="bar" aria-label="${pct2}% of useful life used"><span style="width:${pct2}%"></span></div>
+        <dl class="kv"><dt>Useful life</dt><dd>${d.life} years (${esc(it.cat)})</dd><dt>Months in service</dt><dd>${d.months} of ${d.lifeM}</dd><dt>Monthly charge</dt><dd>${money(d.monthly)}</dd><dt>Accumulated</dt><dd>${money(d.accumulated)}</dd><dt>Book value</dt><dd><strong>${money(d.book)}</strong> as of ${fmt(it.disp?.date?parse(it.disp.date):TODAY)}</dd><dt>Federal share of book</dt><dd>${money(d.fedBook)}</dd></dl>
+        <p class="note">Recalculated each time the record opens, so it stays current month to month without a scheduled job.</p>`:`<p class="note">No useful life set for this category. Add it on the Grant rules tab.</p>`}
+      </div>
+      <div class="block" id="blk-inv"><h3>Physical inventory <span class="cfr">§200.313(d)(2)</span></h3>
+        <dl class="kv"><dt>Last reconciled</dt><dd>${fmt(parse(it.lastInv))}</dd><dt>Next due</dt><dd>${inv.due?fmt(inv.due):"Now"} <span class="pill ${inv.cls}">${inv.label}</span></dd></dl>
+        <div class="btns"><button class="btn ghost" id="d-inv">Record inventory today</button></div>
+      </div>
+      ${canDispose?`<div class="block" id="blk-disp"><h3>Disposition <span class="cfr">§200.313(e)</span></h3>
+        <form class="dform" id="d-form">
+          <div class="field"><label for="dp-date">Disposal date</label><input type="date" id="dp-date" value="${esc(dp.date||"")}"></div>
+          <div class="field"><label for="dp-method">Method</label><select id="dp-method">${["","Sold","Retained for other use","Transferred to another program","Returned to state","Lost or stolen","Damaged / destroyed","Traded in"].map(m=>`<option ${dp.method===m?"selected":""} value="${m}">${m||"Select…"}</option>`).join("")}</select></div>
+          <div class="field"><label for="dp-fmv">Fair market value at disposal</label><input type="number" step="0.01" min="0" id="dp-fmv" value="${esc(dp.fmv??"")}"></div>
+          <div class="field"><label for="dp-price">Sale price</label><input type="number" step="0.01" min="0" id="dp-price" value="${esc(dp.price??"")}"></div>
+          <div class="owed wide" id="dp-owed"></div>
+          <label class="check wide"><input type="checkbox" id="dp-req" ${dp.requested?"checked":""}> Disposition instructions requested from the awarding or pass-through agency</label>
+          <div class="field wide"><label for="dp-ref">Approval reference</label><input id="dp-ref" value="${esc(dp.ref||"")}" placeholder="Letter, email or memo number"></div>
+          <div class="field wide"><label for="dp-notes">Notes</label><textarea id="dp-notes" rows="2">${esc(dp.notes||"")}</textarea></div>
+          <p class="note wide" id="dp-msg"></p>
+          <div class="btns wide"><button class="btn" type="submit">Save disposition</button>${it.disp?`<button class="btn ghost" type="button" id="dp-clear">Clear disposition</button>`:""}</div>
+        </form></div>`:""}
+    </div>`;
+  $("#scrim").hidden = false; $("#drawer").hidden = false;
+  $("#d-close").onclick = closeItem;
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{ const el = document.getElementById(b.dataset.go); if (el) el.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); });
+  mountFunding($("#d-fund"), lines, ()=>it.cost);
+  $("#d-fund-save").onclick = ()=>{
+    const good = lines.filter(l=>l.src && +l.amt>0);
+    if (!good.length){ toast("Add at least one funding source with an amount"); return; }
+    it.funding = good.map(l=>({src:l.src, amt:+l.amt})); it.basis = $("#d-basis").value.trim();
+    refresh(); openItem(id, "blk-fund"); toast("Funding saved");
+  };
+  $("#pa-form").onsubmit = e=>{ e.preventDefault(); it.approval = $("#pa-date").value; it.make = $("#pa-make").value.trim(); it.ndaaOk = $("#pa-889").checked; refresh(); openItem(id, "blk-appr"); toast("Saved"); };
+  $("#d-inv").onclick = ()=>{ it.lastInv = iso(TODAY); refresh(); openItem(id, "blk-inv"); toast("Inventory recorded"); };
+  if (canDispose){
+    const owed = ()=>{
+      const tmp = {...it, disp:{fmv:$("#dp-fmv").value, price:$("#dp-price").value, method:$("#dp-method").value}};
+      const fmv = parseFloat($("#dp-fmv").value); const rows = owedFor(tmp);
+      let t;
+      if (!rows.length) t = "No federal funding on this item, so no federal compensation is owed.";
+      else if (isNaN(fmv)) t = `Enter fair market value to check whether federal compensation is owed. Threshold: ${rows.map(r=>`${esc(r.label)} ${money0(r.threshold)}`).join(", ")} per unit.`;
+      else t = rows.map(r=>r.applies?`${esc(r.label)}: <strong>${money(r.owed)}</strong> owed (${pct(r.share*100)} of ${$("#dp-method").value==="Sold"&&$("#dp-price").value?"sale proceeds":"fair market value"})`:`${esc(r.label)}: fair market value is at or below ${money0(r.threshold)}, nothing owed`).join("<br>") + ($("#dp-method").value==="Sold"?"<br>Up to $1,000 of proceeds may be kept for selling costs if the agency permits.":"");
+      $("#dp-owed").innerHTML = t;
+    };
+    ["dp-fmv","dp-price","dp-method"].forEach(i=>$("#"+i).addEventListener("input",owed)); owed();
+    $("#d-form").onsubmit = e=>{ e.preventDefault();
+      const date = $("#dp-date").value, method = $("#dp-method").value;
+      if (!date || !method){ $("#dp-msg").innerHTML = '<strong style="color:var(--crit)">Add a disposal date and method to save.</strong>'; return; }
+      it.disp = { date, method, fmv:$("#dp-fmv").value, price:$("#dp-price").value, requested:$("#dp-req").checked, ref:$("#dp-ref").value, notes:$("#dp-notes").value };
+      refresh(); openItem(id, "blk-disp"); toast("Disposition saved"); };
+    const clr = $("#dp-clear"); if (clr) clr.onclick = ()=>{ it.disp = null; refresh(); openItem(id, "blk-disp"); toast("Disposition cleared"); };
+  }
+  if (focus && document.getElementById(focus)){ document.getElementById(focus).scrollIntoView({block:"start"}); const f = document.querySelector("#"+focus+" input, #"+focus+" select"); if (f) f.focus({preventScroll:true}); }
+  else $("#d-close").focus();
+}
+function closeItem(){ $("#scrim").hidden = true; $("#drawer").hidden = true; openId = null; }
+$("#scrim").onclick = closeItem;
+document.addEventListener("keydown", e=>{ if (e.key==="Escape"){ if (!$("#tipbox").hidden) hideTip(); else if (!$("#modal").hidden) closeModal(); else if (openId) closeItem(); } });
+
+/* ---------- shell ---------- */
+function copyText(text, fallbackEl){
+  const fallback = ()=>{ if (fallbackEl){ fallbackEl.focus(); fallbackEl.select(); } toast("Select the text and copy it"); };
+  try { navigator.clipboard.writeText(text).then(()=>toast("Copied"), fallback); } catch(e){ fallback(); }
+}
+const VIEWS = ["overview","register","review","reports","map","rules"];
+let current = "overview";
+function show(view){
+  current = view;
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected", b.dataset.view===view));
+  VIEWS.forEach(v=>$("#view-"+v).hidden = v!==view);
+  refresh();
+}
+function refresh(){ ({overview:renderOverview, register:renderRegister, review:renderReview, reports:renderReports, map:renderMap, rules:renderRules})[current](); }
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>{ if(b.dataset.view==="register") filter={q:"",grant:"all",sub:"all",status:"active",flag:""}; show(b.dataset.view); });
+let tt; function toast(m){ const t=$("#toast"); t.textContent=m; t.hidden=false; clearTimeout(tt); tt=setTimeout(()=>t.hidden=true,2000); }
+/* hover / focus help, positioned to stay on screen */
+function showTip(el){
+  const box = $("#tipbox"); box.textContent = el.dataset.tip; box.hidden = false;
+  const r = el.getBoundingClientRect(), b = box.getBoundingClientRect(), pad = 12;
+  let left = Math.min(Math.max(pad, r.left + r.width/2 - b.width/2), window.innerWidth - b.width - pad);
+  let top = r.top - b.height - 8; if (top < pad) top = r.bottom + 8;
+  box.style.left = left + "px"; box.style.top = top + "px";
+}
+const hideTip = ()=>{ $("#tipbox").hidden = true; };
+document.addEventListener("mouseover", e=>{ const t = e.target.closest(".tip"); if (t) showTip(t); });
+document.addEventListener("mouseout", e=>{ if (e.target.closest(".tip")) hideTip(); });
+document.addEventListener("focusin", e=>{ const t = e.target.closest(".tip"); if (t) showTip(t); else hideTip(); });
+document.addEventListener("scroll", hideTip, true);
+/* ---------- ArcGIS sign-in (OAuth 2.0 authorization code with PKCE) ---------- */
+let session = null;
+const store = {
+  get(k){ try { return JSON.parse(sessionStorage.getItem(k)); } catch(e){ return null; } },
+  set(k,v){ try { sessionStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  del(k){ try { sessionStorage.removeItem(k); } catch(e){} }
+};
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+async function signIn(){
+  try {
+    const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
+    const challenge = b64url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
+    const state = b64url(crypto.getRandomValues(new Uint8Array(12)));
+    store.set("arcgis_pkce", {verifier, state});
+    const q = new URLSearchParams({client_id:ARCGIS.clientId, response_type:"code", redirect_uri:ARCGIS.redirectUri, code_challenge:challenge, code_challenge_method:"S256", state});
+    window.location.assign(`${ARCGIS.portal}/oauth2/authorize?${q}`);
+  } catch(e){ authMessage("Sign-in can't start on this page. Open the GitHub version to sign in."); }
+}
+async function tokenRequest(params){
+  const r = await fetch(`${ARCGIS.portal}/oauth2/token`, {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:new URLSearchParams({client_id:ARCGIS.clientId, redirect_uri:ARCGIS.redirectUri, f:"json", ...params})});
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message || j.error_description || "Sign-in failed");
+  return j;
+}
+function saveSession(j, prev){
+  session = { token:j.access_token, username:j.username || prev?.username || "", expires:Date.now() + (j.expires_in||1800)*1000, refresh:j.refresh_token || prev?.refresh || "" };
+  store.set("arcgis_session", session);
+}
+async function initAuth(){
+  const url = new URL(location.href);
+  const code = url.searchParams.get("code"), err = url.searchParams.get("error"), state = url.searchParams.get("state");
+  if (code || err){
+    history.replaceState(null, "", ARCGIS.redirectUri + location.hash);
+    const pk = store.get("arcgis_pkce"); store.del("arcgis_pkce");
+    if (err) return authMessage(`ArcGIS sign-in was cancelled or refused (${err}).`);
+    if (!pk || (state && pk.state !== state)) return authMessage("Sign-in didn't complete. Try again.");
+    try { saveSession(await tokenRequest({grant_type:"authorization_code", code, code_verifier:pk.verifier})); toast(`Signed in as ${session.username}`); }
+    catch(e){ return authMessage(`Sign-in failed: ${e.message}. Check that this page's address is a redirect URI on the ArcGIS app.`); }
+  } else {
+    session = store.get("arcgis_session");
+    if (session && session.expires < Date.now() + 60000){
+      if (session.refresh){ try { saveSession(await tokenRequest({grant_type:"refresh_token", refresh_token:session.refresh}), session); } catch(e){ session = null; store.del("arcgis_session"); } }
+      else { session = null; store.del("arcgis_session"); }
+    }
+  }
+  if (session?.username && !rep.by) rep.by = session.username;
+  renderAuth();
+}
+function signOut(){ session = null; store.del("arcgis_session"); renderAuth(); toast("Signed out"); }
+function authMessage(m){ renderAuth(m); }
+function renderAuth(msg){
+  const el = $("#authbar"); if (!el) return;
+  el.innerHTML = session
+    ? `<span class="who">Signed in as <strong>${esc(session.username)}</strong></span><button class="btn sm authbtn" id="auth-out">Sign out</button>`
+    : `<button class="btn sm authbtn" id="auth-in">Sign in with ArcGIS</button>${msg?`<span class="authmsg" role="alert">${esc(msg)}</span>`:""}`;
+  const i = $("#auth-in"), o = $("#auth-out");
+  if (i) i.onclick = signIn; if (o) o.onclick = signOut;
+}
+
+show("overview");
+initAuth();
+</script>
+</body>
+</html>
