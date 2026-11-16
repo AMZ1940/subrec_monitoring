@@ -261,9 +261,36 @@ table.rlist{min-width:1150px;font-size:.82rem}
 .authbar strong{color:var(--on-navy)}
 .btn.authbtn{background:var(--gold);border-color:var(--gold);color:var(--navy-deep)}
 .authmsg{color:#ffd5d8;max-width:46ch}
+
+/* sign-in gate */
+body.locked header.top, body.locked main{display:none}
+.gate{position:fixed;inset:0;z-index:70;background:var(--navy);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow:auto}
+.gate-card{background:var(--surface);color:var(--ink);border-radius:8px;box-shadow:var(--shadow);width:min(440px,100%);overflow:hidden}
+.gate-band{height:6px;background:linear-gradient(90deg,var(--red) 0 50%,var(--gold) 50% 100%)}
+.gate-body{padding:26px 26px 22px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.gate-body h1{font-size:1.7rem;color:var(--ink)}
+.gate-body p{margin:0}
+.btn.gate-btn{font-size:1rem;padding:11px 20px;background:var(--btn);border-color:var(--btn)}
+.gate-msg{color:var(--crit);font-size:.88rem;min-height:1.2em}
+.gate-msg.info{color:var(--muted)}
 </style>
 </head>
 <body>
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <div class="gate-card">
+    <div class="gate-band"></div>
+    <div class="gate-body">
+      <span class="proto">Prototype · sample data</span>
+      <h1 id="gate-title">Subrecipient Equipment Monitor</h1>
+      <p>Sign in with your ArcGIS account to open the equipment register, reviews and reports.</p>
+      <button class="btn gate-btn" id="gate-in">Sign in with ArcGIS</button>
+      <p class="gate-msg" id="gate-msg" role="alert"></p>
+      <a class="linkbtn" id="gate-tab" target="_blank" rel="noopener" hidden>Open the app in a new tab instead</a>
+      <p class="note">Sign-in opens in a pop-up window. If nothing happens, allow pop-ups for this site.</p>
+    </div>
+  </div>
+</div>
 <header class="top">
   <div class="wrap">
     <div class="brand">
@@ -302,14 +329,16 @@ table.rlist{min-width:1150px;font-size:.82rem}
 /* =====================================================================
    ARCGIS SIGN-IN
    clientId comes from the app registered in ArcGIS Online.
-   redirectUri must match a redirect URI registered on that ArcGIS app exactly,
-   including the trailing slash.
+   redirectUri and callbackUri must each match a redirect URL registered on that
+   ArcGIS app exactly. callbackUri is used for the pop-up sign-in, which is how
+   sign-in works when this page is embedded in Experience Builder.
    For an ArcGIS Enterprise portal, change portal to https://<your-portal>/portal/sharing/rest
    ===================================================================== */
 const ARCGIS = {
   clientId: "BMAGdbDA6Ikd2Gms",
   portal: "https://www.arcgis.com/sharing/rest",
-  redirectUri: "https://amz1940.github.io/subrec_monitoring/"
+  redirectUri: "https://amz1940.github.io/subrec_monitoring/",
+  callbackUri: "https://amz1940.github.io/subrec_monitoring/oauth-callback.html"
 };
 
 /* =====================================================================
@@ -1474,33 +1503,81 @@ document.addEventListener("mouseover", e=>{ const t = e.target.closest(".tip"); 
 document.addEventListener("mouseout", e=>{ if (e.target.closest(".tip")) hideTip(); });
 document.addEventListener("focusin", e=>{ const t = e.target.closest(".tip"); if (t) showTip(t); else hideTip(); });
 document.addEventListener("scroll", hideTip, true);
-/* ---------- ArcGIS sign-in (OAuth 2.0 authorization code with PKCE) ---------- */
-let session = null;
+/* ---------- ArcGIS sign-in (OAuth 2.0 authorization code with PKCE) ----------
+   Nothing in the app shows until the user signs in.
+   Embedded in Experience Builder: sign-in opens in a pop-up (ArcGIS's sign-in page
+   can't load inside a frame), and oauth-callback.html hands the result back.
+   Opened on its own: the pop-up is used too; if pop-ups are blocked it falls back
+   to a full-page redirect. */
+let session = null, pending = null, refreshTimer = null;
+const embedded = (()=>{ try { return window.top !== window.self; } catch(e){ return true; } })();
 const store = {
   get(k){ try { return JSON.parse(sessionStorage.getItem(k)); } catch(e){ return null; } },
   set(k,v){ try { sessionStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
   del(k){ try { sessionStorage.removeItem(k); } catch(e){} }
 };
 const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-async function signIn(){
-  try {
-    const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
-    const challenge = b64url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
-    const state = b64url(crypto.getRandomValues(new Uint8Array(12)));
-    store.set("arcgis_pkce", {verifier, state});
-    const q = new URLSearchParams({client_id:ARCGIS.clientId, response_type:"code", redirect_uri:ARCGIS.redirectUri, code_challenge:challenge, code_challenge_method:"S256", state});
-    window.location.assign(`${ARCGIS.portal}/oauth2/authorize?${q}`);
-  } catch(e){ authMessage("Sign-in can't start on this page. Open the GitHub version to sign in."); }
+async function makePkce(redirect){
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const challenge = b64url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
+  const state = b64url(crypto.getRandomValues(new Uint8Array(12)));
+  const url = `${ARCGIS.portal}/oauth2/authorize?` + new URLSearchParams({client_id:ARCGIS.clientId, response_type:"code", redirect_uri:redirect, code_challenge:challenge, code_challenge_method:"S256", state});
+  return {verifier, state, redirect, url};
 }
-async function tokenRequest(params){
-  const r = await fetch(`${ARCGIS.portal}/oauth2/token`, {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:new URLSearchParams({client_id:ARCGIS.clientId, redirect_uri:ARCGIS.redirectUri, f:"json", ...params})});
+async function signIn(){
+  gateMessage("");
+  let popup = null;
+  try { popup = window.open("", "arcgis-signin", "width=520,height=720"); } catch(e){ popup = null; }
+  try {
+    if (popup){
+      pending = await makePkce(ARCGIS.callbackUri);
+      popup.location.href = pending.url;
+      gateMessage("Finish signing in in the pop-up window.", "info");
+      return;
+    }
+    if (!embedded){
+      const pk = await makePkce(ARCGIS.redirectUri);
+      store.set("arcgis_pkce", {verifier:pk.verifier, state:pk.state, redirect:pk.redirect});
+      window.location.assign(pk.url);
+      return;
+    }
+    gateMessage("Your browser blocked the sign-in pop-up. Allow pop-ups for this site and try again, or open the app in a new tab.");
+  } catch(e){ if (popup) try { popup.close(); } catch(_){} gateMessage("Sign-in can't start here. Open the app in a new tab."); }
+}
+window.addEventListener("message", async e=>{
+  if (e.origin !== location.origin || !e.data || e.data.type !== "arcgis-oauth" || !pending) return;
+  const pk = pending; pending = null;
+  if (e.data.error) return gateMessage(`ArcGIS sign-in was cancelled or refused (${e.data.error}).`);
+  if (e.data.state !== pk.state) return gateMessage("Sign-in didn't complete. Try again.");
+  await finishSignIn(e.data.code, pk.verifier, pk.redirect);
+});
+async function tokenRequest(params, redirect){
+  const r = await fetch(`${ARCGIS.portal}/oauth2/token`, {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:new URLSearchParams({client_id:ARCGIS.clientId, redirect_uri:redirect, f:"json", ...params})});
   const j = await r.json();
   if (j.error) throw new Error(j.error.message || j.error_description || "Sign-in failed");
   return j;
 }
-function saveSession(j, prev){
-  session = { token:j.access_token, username:j.username || prev?.username || "", expires:Date.now() + (j.expires_in||1800)*1000, refresh:j.refresh_token || prev?.refresh || "" };
+function saveSession(j, prev, redirect){
+  session = { token:j.access_token, username:j.username || prev?.username || "", expires:Date.now() + (j.expires_in||1800)*1000, refresh:j.refresh_token || prev?.refresh || "", redirect: redirect || prev?.redirect };
   store.set("arcgis_session", session);
+  scheduleRefresh();
+}
+function scheduleRefresh(){
+  clearTimeout(refreshTimer);
+  if (!session) return;
+  const wait = Math.max(5000, session.expires - Date.now() - 120000);
+  refreshTimer = setTimeout(async ()=>{
+    if (!session?.refresh){ signOut("Your ArcGIS session expired. Sign in again."); return; }
+    try { saveSession(await tokenRequest({grant_type:"refresh_token", refresh_token:session.refresh}, session.redirect), session); }
+    catch(e){ signOut("Your ArcGIS session expired. Sign in again."); }
+  }, wait);
+}
+async function finishSignIn(code, verifier, redirect){
+  gateMessage("Signing in…", "info");
+  try {
+    saveSession(await tokenRequest({grant_type:"authorization_code", code, code_verifier:verifier}, redirect), null, redirect);
+    unlock(); toast(`Signed in as ${session.username}`);
+  } catch(e){ gateMessage(`Sign-in failed: ${e.message}. Check that ${redirect} is listed as a redirect URL on the ArcGIS app.`); }
 }
 async function initAuth(){
   const url = new URL(location.href);
@@ -1508,32 +1585,34 @@ async function initAuth(){
   if (code || err){
     history.replaceState(null, "", location.pathname + location.hash);
     const pk = store.get("arcgis_pkce"); store.del("arcgis_pkce");
-    if (err) return authMessage(`ArcGIS sign-in was cancelled or refused (${err}).`);
-    if (!pk || (state && pk.state !== state)) return authMessage("Sign-in didn't complete. Try again.");
-    try { saveSession(await tokenRequest({grant_type:"authorization_code", code, code_verifier:pk.verifier})); toast(`Signed in as ${session.username}`); }
-    catch(e){ return authMessage(`Sign-in failed: ${e.message}. Check that this page's address is a redirect URI on the ArcGIS app.`); }
-  } else {
-    session = store.get("arcgis_session");
-    if (session && session.expires < Date.now() + 60000){
-      if (session.refresh){ try { saveSession(await tokenRequest({grant_type:"refresh_token", refresh_token:session.refresh}), session); } catch(e){ session = null; store.del("arcgis_session"); } }
-      else { session = null; store.del("arcgis_session"); }
-    }
+    if (err) return gateMessage(`ArcGIS sign-in was cancelled or refused (${err}).`);
+    if (!pk || (state && pk.state !== state)) return gateMessage("Sign-in didn't complete. Try again.");
+    return finishSignIn(code, pk.verifier, pk.redirect);
   }
-  if (session?.username && !rep.by) rep.by = session.username;
-  renderAuth();
+  session = store.get("arcgis_session");
+  if (session && session.expires < Date.now() + 60000){
+    if (session.refresh){ try { saveSession(await tokenRequest({grant_type:"refresh_token", refresh_token:session.refresh}, session.redirect), session); } catch(e){ session = null; store.del("arcgis_session"); } }
+    else { session = null; store.del("arcgis_session"); }
+  }
+  if (session){ scheduleRefresh(); unlock(); } else lock();
 }
-function signOut(){ session = null; store.del("arcgis_session"); renderAuth(); toast("Signed out"); }
-function authMessage(m){ renderAuth(m); }
-function renderAuth(msg){
+function lock(){ document.body.classList.add("locked"); $("#gate").hidden = false; renderAuth(); const b = $("#gate-in"); if (b) b.focus(); }
+function unlock(){
+  if (session?.username){ if (!rep.by) rep.by = session.username; }
+  gateMessage(""); document.body.classList.remove("locked"); $("#gate").hidden = true; renderAuth(); show(current);
+}
+function signOut(msg){ session = null; clearTimeout(refreshTimer); store.del("arcgis_session"); closeItem(); closeModal(); lock(); if (msg) gateMessage(msg); else toast("Signed out"); }
+function gateMessage(m, kind){ const el = $("#gate-msg"); if (!el) return; el.textContent = m; el.className = "gate-msg" + (kind==="info" ? " info" : ""); }
+function renderAuth(){
   const el = $("#authbar"); if (!el) return;
-  el.innerHTML = session
-    ? `<span class="who">Signed in as <strong>${esc(session.username)}</strong></span><button class="btn sm authbtn" id="auth-out">Sign out</button>`
-    : `<button class="btn sm authbtn" id="auth-in">Sign in with ArcGIS</button>${msg?`<span class="authmsg" role="alert">${esc(msg)}</span>`:""}`;
-  const i = $("#auth-in"), o = $("#auth-out");
-  if (i) i.onclick = signIn; if (o) o.onclick = signOut;
+  el.innerHTML = session ? `<span class="who">Signed in as <strong>${esc(session.username)}</strong></span><button class="btn sm authbtn" id="auth-out">Sign out</button>` : "";
+  const o = $("#auth-out"); if (o) o.onclick = ()=>signOut();
 }
+$("#gate-in").onclick = signIn;
+$("#gate-tab").href = ARCGIS.redirectUri;
+$("#gate-tab").hidden = !embedded;
 
-show("overview");
+lock();
 initAuth();
 </script>
 </body>

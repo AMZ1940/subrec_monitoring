@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signing in</title>
+<style>
+  body{margin:0;font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:#14284b;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;box-sizing:border-box}
+  p{max-width:36ch;text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+<p id="m">Finishing sign-in…</p>
+<script>
+/* Receives the ArcGIS sign-in result in the pop-up and hands it back to the app window. */
+(function(){
+  var q = new URLSearchParams(location.search);
+  var msg = { type:"arcgis-oauth", code:q.get("code"), state:q.get("state"), error:q.get("error"), error_description:q.get("error_description") };
+  var m = document.getElementById("m");
+  if (window.opener && !window.opener.closed){
+    try { window.opener.postMessage(msg, location.origin); } catch(e){}
+    m.textContent = "Signed in. You can close this window.";
+    setTimeout(function(){ window.close(); }, 300);
+  } else {
+    m.textContent = "Sign-in finished, but the app window couldn't be found. Close this window and click Sign in again.";
+  }
+})();
+</script>
+</body>
+</html>
