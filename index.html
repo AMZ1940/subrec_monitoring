@@ -302,14 +302,14 @@ table.rlist{min-width:1150px;font-size:.82rem}
 /* =====================================================================
    ARCGIS SIGN-IN
    clientId comes from the app registered in ArcGIS Online.
-   The redirect URI registered on that app must match this page's address,
-   e.g. https://jhoward270.github.io/Subrecipient-Monitoring/
+   redirectUri must match a redirect URI registered on that ArcGIS app exactly,
+   including the trailing slash.
    For an ArcGIS Enterprise portal, change portal to https://<your-portal>/portal/sharing/rest
    ===================================================================== */
 const ARCGIS = {
   clientId: "BMAGdbDA6Ikd2Gms",
   portal: "https://www.arcgis.com/sharing/rest",
-  redirectUri: location.origin + location.pathname
+  redirectUri: "https://amz1940.github.io/subrec_monitoring/"
 };
 
 /* =====================================================================
@@ -1506,7 +1506,7 @@ async function initAuth(){
   const url = new URL(location.href);
   const code = url.searchParams.get("code"), err = url.searchParams.get("error"), state = url.searchParams.get("state");
   if (code || err){
-    history.replaceState(null, "", ARCGIS.redirectUri + location.hash);
+    history.replaceState(null, "", location.pathname + location.hash);
     const pk = store.get("arcgis_pkce"); store.del("arcgis_pkce");
     if (err) return authMessage(`ArcGIS sign-in was cancelled or refused (${err}).`);
     if (!pk || (state && pk.state !== state)) return authMessage("Sign-in didn't complete. Try again.");
